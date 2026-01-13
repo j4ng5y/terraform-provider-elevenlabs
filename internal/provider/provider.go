@@ -76,6 +76,9 @@ func (p *ElevenLabsProvider) Resources(ctx context.Context) []func() resource.Re
 	return []func() resource.Resource{
 		NewVoiceResource,
 		NewProjectResource,
+		NewPronunciationDictionaryResource,
+		NewAudioNativeResource,
+		NewDubbingProjectResource,
 	}
 }
 
