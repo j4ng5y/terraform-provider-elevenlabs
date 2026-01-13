@@ -18,11 +18,16 @@ type VoiceSample struct {
 	Hash      string `json:"hash"`
 }
 
+type AddVoiceSampleRequest struct {
+	FilePath string `json:"-"`
+}
+
 type VoiceSettings struct {
 	Stability       float64 `json:"stability"`
 	SimilarityBoost float64 `json:"similarity_boost"`
 	Style           float64 `json:"style"`
 	UseSpeakerBoost bool    `json:"use_speaker_boost"`
+	Speed           float64 `json:"speed,omitempty"`
 }
 
 type AddVoiceRequest struct {

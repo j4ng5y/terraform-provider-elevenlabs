@@ -23,11 +23,19 @@ var (
 
 // VoiceResourceModel describes the resource data model.
 type VoiceResourceModel struct {
-	ID          types.String `tfsdk:"id"`
-	Name        types.String `tfsdk:"name"`
-	Description types.String `tfsdk:"description"`
-	Labels      types.Map    `tfsdk:"labels"`
-	Files       types.List   `tfsdk:"files"`
+	ID          types.String   `tfsdk:"id"`
+	Name        types.String   `tfsdk:"name"`
+	Description types.String   `tfsdk:"description"`
+	Labels      types.Map      `tfsdk:"labels"`
+	Files       types.List     `tfsdk:"files"`
+	Settings    *VoiceSettings `tfsdk:"settings"`
+}
+
+type VoiceSettings struct {
+	Stability       types.Float64 `tfsdk:"stability"`
+	SimilarityBoost types.Float64 `tfsdk:"similarity_boost"`
+	Style           types.Float64 `tfsdk:"style"`
+	UseSpeakerBoost types.Bool    `tfsdk:"use_speaker_boost"`
 }
 
 func NewVoiceResource() resource.Resource {
@@ -71,6 +79,27 @@ func (r *VoiceResource) Schema(ctx context.Context, req resource.SchemaRequest, 
 				ElementType:         types.StringType,
 				Required:            true,
 				MarkdownDescription: "List of file paths for voice cloning. Required for creation.",
+			},
+			"settings": schema.SingleNestedAttribute{
+				Optional: true,
+				Attributes: map[string]schema.Attribute{
+					"stability": schema.Float64Attribute{
+						Optional: true,
+						Computed: true,
+					},
+					"similarity_boost": schema.Float64Attribute{
+						Optional: true,
+						Computed: true,
+					},
+					"style": schema.Float64Attribute{
+						Optional: true,
+						Computed: true,
+					},
+					"use_speaker_boost": schema.BoolAttribute{
+						Optional: true,
+						Computed: true,
+					},
+				},
 			},
 		},
 	}
@@ -125,6 +154,20 @@ func (r *VoiceResource) Create(ctx context.Context, req resource.CreateRequest, 
 		return
 	}
 
+	if data.Settings != nil {
+		settingsReq := &models.VoiceSettings{
+			Stability:       data.Settings.Stability.ValueFloat64(),
+			SimilarityBoost: data.Settings.SimilarityBoost.ValueFloat64(),
+			Style:           data.Settings.Style.ValueFloat64(),
+			UseSpeakerBoost: data.Settings.UseSpeakerBoost.ValueBool(),
+		}
+		err = r.client.EditVoiceSettings(voice.VoiceID, settingsReq)
+		if err != nil {
+			resp.Diagnostics.AddError("Error setting voice settings", err.Error())
+			return
+		}
+	}
+
 	data.ID = types.StringValue(voice.VoiceID)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -144,11 +187,19 @@ func (r *VoiceResource) Read(ctx context.Context, req resource.ReadRequest, resp
 	}
 
 	data.Name = types.StringValue(voice.Name)
-	// Note: Description is not returned by the API in the same way, we might need to handle labels
 	if voice.Labels != nil {
 		labelMap, diag := types.MapValueFrom(ctx, types.StringType, voice.Labels)
 		resp.Diagnostics.Append(diag...)
 		data.Labels = labelMap
+	}
+
+	if voice.Settings != nil {
+		data.Settings = &VoiceSettings{
+			Stability:       types.Float64Value(voice.Settings.Stability),
+			SimilarityBoost: types.Float64Value(voice.Settings.SimilarityBoost),
+			Style:           types.Float64Value(voice.Settings.Style),
+			UseSpeakerBoost: types.BoolValue(voice.Settings.UseSpeakerBoost),
+		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
@@ -184,6 +235,20 @@ func (r *VoiceResource) Update(ctx context.Context, req resource.UpdateRequest, 
 	if err != nil {
 		resp.Diagnostics.AddError("Error updating voice", err.Error())
 		return
+	}
+
+	if data.Settings != nil {
+		settingsReq := &models.VoiceSettings{
+			Stability:       data.Settings.Stability.ValueFloat64(),
+			SimilarityBoost: data.Settings.SimilarityBoost.ValueFloat64(),
+			Style:           data.Settings.Style.ValueFloat64(),
+			UseSpeakerBoost: data.Settings.UseSpeakerBoost.ValueBool(),
+		}
+		err = r.client.EditVoiceSettings(data.ID.ValueString(), settingsReq)
+		if err != nil {
+			resp.Diagnostics.AddError("Error updating voice settings", err.Error())
+			return
+		}
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)

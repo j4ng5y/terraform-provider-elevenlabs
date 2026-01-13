@@ -79,12 +79,33 @@ func (p *ElevenLabsProvider) Resources(ctx context.Context) []func() resource.Re
 		NewPronunciationDictionaryResource,
 		NewAudioNativeResource,
 		NewDubbingProjectResource,
+		NewConvAIAgentResource,
+		NewConvAIKnowledgeBaseResource,
+		NewConvAIToolResource,
+		NewConvAISecretResource,
+		NewWorkspaceWebhookResource,
+		NewWorkspaceInviteResource,
+		NewServiceAccountKeyResource,
+		NewVoiceSampleResource,
+		NewStudioChapterResource,
+		NewConvAIMCPServerResource,
+		NewConvAIPhoneNumberResource,
+		NewWorkspaceMemberResource,
+		NewWorkspaceGroupMembershipResource,
+		NewConvAISettingsResource,
+		NewResourceShareResource,
+		NewConvAIAgentTestResource,
+		NewSharedVoiceResource,
 	}
 }
 
 func (p *ElevenLabsProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	return []func() datasource.DataSource{
 		NewModelsDataSource,
+		NewVoicesDataSource,
+		NewProjectsDataSource,
+		NewPronunciationDictionariesDataSource,
+		NewConvAIAgentsDataSource,
 	}
 }
 
