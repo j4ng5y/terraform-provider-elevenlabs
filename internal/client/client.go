@@ -41,7 +41,7 @@ func (c *Client) doRequest(req *http.Request, v interface{}) error {
 	if err != nil {
 		return err
 	}
-	defer resp.Body.Close()
+	defer resp.Body.Close() //nolint:errcheck
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		body, _ := io.ReadAll(resp.Body)
@@ -98,7 +98,7 @@ func (c *Client) AddVoice(addReq *models.AddVoiceRequest) (*models.Voice, error)
 		if err != nil {
 			return nil, err
 		}
-		defer file.Close()
+		defer file.Close() //nolint:errcheck //nolint:errcheck
 
 		part, err := writer.CreateFormFile("files", filepath.Base(filePath))
 		if err != nil {
@@ -150,7 +150,7 @@ func (c *Client) EditVoice(voiceID string, addReq *models.AddVoiceRequest) error
 		if err != nil {
 			return err
 		}
-		defer file.Close()
+		defer file.Close() //nolint:errcheck //nolint:errcheck
 
 		part, err := writer.CreateFormFile("files", filepath.Base(filePath))
 		if err != nil {
@@ -291,7 +291,7 @@ func (c *Client) AddPronunciationDictionaryFromFile(addReq *models.AddPronunciat
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer file.Close() //nolint:errcheck
 
 	part, err := writer.CreateFormFile("file", filepath.Base(addReq.FilePath))
 	if err != nil {
@@ -448,7 +448,7 @@ func (c *Client) CreateAudioNative(addReq *models.CreateAudioNativeRequest) (*mo
 		if err != nil {
 			return nil, err
 		}
-		defer file.Close()
+		defer file.Close() //nolint:errcheck //nolint:errcheck
 
 		part, err := writer.CreateFormFile("file", filepath.Base(addReq.FilePath))
 		if err != nil {
@@ -503,7 +503,7 @@ func (c *Client) UpdateAudioNativeContent(projectID string, filePath string, voi
 		if err != nil {
 			return err
 		}
-		defer file.Close()
+		defer file.Close() //nolint:errcheck //nolint:errcheck
 
 		part, err := writer.CreateFormFile("file", filepath.Base(filePath))
 		if err != nil {
@@ -731,7 +731,7 @@ func (c *Client) CreateConvAIKnowledgeBase(addReq *models.CreateConvAIKnowledgeB
 		if err != nil {
 			return nil, err
 		}
-		defer file.Close()
+		defer file.Close() //nolint:errcheck //nolint:errcheck
 
 		part, err := writer.CreateFormFile("file", filepath.Base(addReq.FilePath))
 		if err != nil {
@@ -1611,7 +1611,7 @@ func (c *Client) AddVoiceSample(voiceID string, addReq *models.AddVoiceSampleReq
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer file.Close() //nolint:errcheck
 
 	part, err := writer.CreateFormFile("file", filepath.Base(addReq.FilePath))
 	if err != nil {
@@ -1733,7 +1733,7 @@ func (c *Client) AddPVCVoiceSample(voiceID string, addReq *models.AddPVCVoiceSam
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer file.Close() //nolint:errcheck
 
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
@@ -1748,7 +1748,7 @@ func (c *Client) AddPVCVoiceSample(voiceID string, addReq *models.AddPVCVoiceSam
 		return nil, err
 	}
 
-	w.Close()
+	w.Close() //nolint:errcheck
 
 	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/voices/pvc/"+voiceID+"/samples", &b)
 	if err != nil {

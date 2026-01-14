@@ -92,7 +92,46 @@ func (r *PronunciationDictionaryRulesResource) Configure(ctx context.Context, re
 
 func (r *PronunciationDictionaryRulesResource) Create(ctx context.Context, req resource.CreateRequest, resp *resource.CreateResponse) {
 	var data PronunciationDictionaryRulesResourceModel
+
 	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+
+	if resp.Diagnostics.HasError() {
+		return
+	}
+
+	rules := make([]models.PronunciationRule, 0, len(data.Rules))
+	for _, rule := range data.Rules {
+		rules = append(rules, models.PronunciationRule{
+			StringToReplace: rule.StringToReplace.ValueString(),
+			Type:            rule.Type.ValueString(),
+		})
+	}
+
+	var err error
+	action := data.Action.ValueString()
+	switch action {
+	case "add":
+		err = r.client.AddPronunciationDictionaryRules(data.DictionaryID.ValueString(), rules)
+	case "remove":
+		err = r.client.RemovePronunciationDictionaryRules(data.DictionaryID.ValueString(), rules)
+	default:
+		resp.Diagnostics.AddError("Invalid Action", "Action must be 'add' or 'remove'.")
+		return
+	}
+
+	if err != nil {
+		resp.Diagnostics.AddError("Error modifying pronunciation dictionary rules", err.Error())
+		return
+	}
+
+	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
+}
+
+func (r *PronunciationDictionaryRulesResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
+	var data PronunciationDictionaryRulesResourceModel
+
+	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
+
 	if resp.Diagnostics.HasError() {
 		return
 	}
@@ -110,11 +149,12 @@ func (r *PronunciationDictionaryRulesResource) Create(ctx context.Context, req r
 
 	var err error
 	action := data.Action.ValueString()
-	if action == "add" {
+	switch action {
+	case "add":
 		err = r.client.AddPronunciationDictionaryRules(data.DictionaryID.ValueString(), rules)
-	} else if action == "remove" {
+	case "remove":
 		err = r.client.RemovePronunciationDictionaryRules(data.DictionaryID.ValueString(), rules)
-	} else {
+	default:
 		resp.Diagnostics.AddError("Invalid Action", "Action must be 'add' or 'remove'.")
 		return
 	}
@@ -129,43 +169,6 @@ func (r *PronunciationDictionaryRulesResource) Create(ctx context.Context, req r
 
 func (r *PronunciationDictionaryRulesResource) Read(ctx context.Context, req resource.ReadRequest, resp *resource.ReadResponse) {
 	// This is an action resource, no persistent state needed
-}
-
-func (r *PronunciationDictionaryRulesResource) Update(ctx context.Context, req resource.UpdateRequest, resp *resource.UpdateResponse) {
-	var data PronunciationDictionaryRulesResourceModel
-	resp.Diagnostics.Append(req.Plan.Get(ctx, &data)...)
-	if resp.Diagnostics.HasError() {
-		return
-	}
-
-	rules := make([]models.PronunciationRule, len(data.Rules))
-	for i, rule := range data.Rules {
-		rules[i] = models.PronunciationRule{
-			Type:            rule.Type.ValueString(),
-			StringToReplace: rule.StringToReplace.ValueString(),
-			Alias:           rule.Alias.ValueString(),
-			Phoneme:         rule.Phoneme.ValueString(),
-			Alphabet:        rule.Alphabet.ValueString(),
-		}
-	}
-
-	var err error
-	action := data.Action.ValueString()
-	if action == "add" {
-		err = r.client.AddPronunciationDictionaryRules(data.DictionaryID.ValueString(), rules)
-	} else if action == "remove" {
-		err = r.client.RemovePronunciationDictionaryRules(data.DictionaryID.ValueString(), rules)
-	} else {
-		resp.Diagnostics.AddError("Invalid Action", "Action must be 'add' or 'remove'.")
-		return
-	}
-
-	if err != nil {
-		resp.Diagnostics.AddError("Error modifying pronunciation dictionary rules", err.Error())
-		return
-	}
-
-	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
 func (r *PronunciationDictionaryRulesResource) Delete(ctx context.Context, req resource.DeleteRequest, resp *resource.DeleteResponse) {

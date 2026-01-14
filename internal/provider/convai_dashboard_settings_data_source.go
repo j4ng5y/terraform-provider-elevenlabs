@@ -4,21 +4,11 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/attr"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/j4ng5y/terraform-provider-elevenlabs/internal/client"
 )
-
-var convaiDashboardSettingsAttrTypes = map[string]attr.Type{
-	"analytics_enabled":        types.BoolType,
-	"recording_enabled":        types.BoolType,
-	"transcription_enabled":    types.BoolType,
-	"LLM_optimization_enabled": types.BoolType,
-}
-
-var convaiDashboardSettingsObjectType = types.ObjectType{AttrTypes: convaiDashboardSettingsAttrTypes}
 
 func NewConvAIDashboardSettingsDataSource() datasource.DataSource {
 	return &ConvAIDashboardSettingsDataSource{}

@@ -133,7 +133,7 @@ func loadSpecOperations(path string, filt filter) ([]specOperation, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer file.Close()
+	defer file.Close() //nolint:errcheck
 
 	var spec struct {
 		Paths map[string]map[string]struct {
