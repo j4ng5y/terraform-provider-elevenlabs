@@ -133,13 +133,40 @@ export ELEVENLABS_API_KEY="..."
 go test -v ./internal/provider/
 ```
 
+### API Coverage Tracking
+
+Use the OpenAPI coverage command to understand how much of the ElevenLabs surface area currently has Terraform parity:
+
+```bash
+go run ./cmd/coverage -exclude-tags "text-to-voice,text-to-speech,text-to-dialogue,voice-generation,speech-to-text,speech-to-speech,music-generation,audio-isolation,sound-generation,usage,speech-history,Single Use Token,forced-alignment,dubbing,studio"
+```
+
+Handy flags:
+
+- `-include-tags "Agents Platform"` — focus on a single product area such as ConvAI.
+- `-methods GET,POST` — constrain the report to specific HTTP verbs.
+- `-details=false` — collapse the per-endpoint list when you only need counts.
+
+The current backlog is dominated by the following CRUD-heavy domains (counts pulled from `go run ./cmd/coverage` on 2026-01-13):
+
+1. **Agents Platform (~48 missing ops)** – conversations inventory, knowledge-base RAG indexes, MCP server configurations, agent tool approvals, and action endpoints (audio playback, outbound calls, test conversations).
+2. **Workspace & Enterprise (13 combined)** – SSO groups, entitlements, and enterprise organization management.
+3. **PVC Voices (~13 ops)** – voice model versions and fine-tuning operations.
+
+Target Terraform types to add next (Agents Platform focus):
+
+- Data sources: `elevenlabs_convai_conversations`, `elevenlabs_convai_knowledge_bases`, `elevenlabs_convai_tools`, `elevenlabs_convai_phone_numbers`, `elevenlabs_convai_whatsapp_accounts`, `elevenlabs_convai_mcp_servers`.
+- Resources: `elevenlabs_convai_whatsapp_account`, `elevenlabs_convai_mcp_tool_config`, `elevenlabs_convai_mcp_tool_approval`, `elevenlabs_convai_knowledge_base_rag_index`, `elevenlabs_convai_conversation`.
+
+These priorities cover every persistent CRUD API that is still missing from the provider. The remaining action-only endpoints (text-to-speech rendering, outbound call simulators, etc.) stay outside Terraform scope per the current design agreement.
+
 ## Roadmap
 
 - [ ] Support for **Pronunciation Dictionaries**
 - [ ] Support for **Audio Native** player settings
-- [ ] Dedicated **Voice Sample** resource for incremental updates
-- [ ] Integration with **Dubbing** projects
-- [ ] Workspace and User settings management
+- [x] Dedicated **Voice Sample** resource for incremental updates
+- [ ] **ConvAI Agents Platform** - Complete coverage (conversations, knowledge bases, tools, MCP servers)
+- [x] **Workspace and Enterprise** management (members, groups, invites, service accounts)
 
 ## Contributing
 

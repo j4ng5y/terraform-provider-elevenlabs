@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/j4ng5y/terraform-provider-elevenlabs/internal/models"
 )
@@ -422,85 +423,6 @@ func (c *Client) GetAudioNativeSettings(projectID string) (*models.AudioNativeSe
 	return &settings, err
 }
 
-// Dubbing
-func (c *Client) CreateDubbingProject(addReq *models.CreateDubbingRequest) (*models.DubbingProject, error) {
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-
-	_ = writer.WriteField("name", addReq.Name)
-	_ = writer.WriteField("target_lang", addReq.TargetLang)
-	if addReq.SourceURL != "" {
-		_ = writer.WriteField("source_url", addReq.SourceURL)
-	}
-	if addReq.SourceLang != "" {
-		_ = writer.WriteField("source_lang", addReq.SourceLang)
-	}
-	if addReq.NumSpeakers > 0 {
-		_ = writer.WriteField("num_speakers", fmt.Sprintf("%d", addReq.NumSpeakers))
-	}
-	if addReq.Watermark {
-		_ = writer.WriteField("watermark", "true")
-	}
-	if addReq.DubbingStudio {
-		_ = writer.WriteField("dubbing_studio", "true")
-	}
-	if addReq.Mode != "" {
-		_ = writer.WriteField("mode", addReq.Mode)
-	}
-
-	if addReq.FilePath != "" {
-		file, err := os.Open(addReq.FilePath)
-		if err != nil {
-			return nil, err
-		}
-		defer file.Close()
-
-		part, err := writer.CreateFormFile("file", filepath.Base(addReq.FilePath))
-		if err != nil {
-			return nil, err
-		}
-		_, err = io.Copy(part, file)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	err := writer.Close()
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/dubbing", body)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", writer.FormDataContentType())
-
-	var project models.DubbingProject
-	err = c.doRequest(req, &project)
-	return &project, err
-}
-
-func (c *Client) GetDubbingProject(dubbingID string) (*models.DubbingProject, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/dubbing/"+dubbingID, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	var project models.DubbingProject
-	err = c.doRequest(req, &project)
-	return &project, err
-}
-
-func (c *Client) DeleteDubbingProject(dubbingID string) error {
-	req, err := http.NewRequest(http.MethodDelete, baseURL+"/dubbing/"+dubbingID, nil)
-	if err != nil {
-		return err
-	}
-
-	return c.doRequest(req, nil)
-}
-
 // Conversational AI Agents
 func (c *Client) GetConvAIAgents() ([]models.ConvAIAgent, error) {
 	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/agents", nil)
@@ -631,6 +553,39 @@ func (c *Client) DeleteConvAIKnowledgeBase(documentationID string) error {
 	return c.doRequest(req, nil)
 }
 
+func (c *Client) ListConvAIKnowledgeBaseDocuments(params *models.ListConvAIKnowledgeBaseDocumentsParams) (*models.ConvAIKnowledgeBaseListResponse, error) {
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/knowledge-base", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	if params != nil {
+		query := req.URL.Query()
+		if params.PageSize != nil {
+			query.Set("page_size", strconv.Itoa(*params.PageSize))
+		}
+		if params.Search != "" {
+			query.Set("search", params.Search)
+		}
+		if params.Cursor != "" {
+			query.Set("cursor", params.Cursor)
+		}
+		if params.ShowOnlyOwned != nil {
+			query.Set("show_only_owned_documents", strconv.FormatBool(*params.ShowOnlyOwned))
+		}
+		for _, t := range params.Types {
+			if t != "" {
+				query.Add("types", t)
+			}
+		}
+		req.URL.RawQuery = query.Encode()
+	}
+
+	var list models.ConvAIKnowledgeBaseListResponse
+	err = c.doRequest(req, &list)
+	return &list, err
+}
+
 // Conversational AI Tools
 func (c *Client) CreateConvAITool(addReq *models.CreateConvAIToolRequest) (*models.ConvAITool, error) {
 	body, err := json.Marshal(addReq)
@@ -680,6 +635,17 @@ func (c *Client) DeleteConvAITool(toolID string) error {
 	}
 
 	return c.doRequest(req, nil)
+}
+
+func (c *Client) GetConvAITools() ([]models.ConvAITool, error) {
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/tools", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp models.ConvAIToolsResponse
+	err = c.doRequest(req, &resp)
+	return resp.Tools, err
 }
 
 // Conversational AI Secrets
@@ -771,6 +737,17 @@ func (c *Client) DeleteConvAIAgentTest(testID string) error {
 }
 
 // Conversational AI MCP Servers
+func (c *Client) GetConvAIMCPServers() ([]models.ConvAIMCPServer, error) {
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/mcp-servers", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var servers []models.ConvAIMCPServer
+	err = c.doRequest(req, &servers)
+	return servers, err
+}
+
 func (c *Client) CreateConvAIMCPServer(addReq *models.CreateConvAIMCPServerRequest) (*models.ConvAIMCPServer, error) {
 	body, err := json.Marshal(addReq)
 	if err != nil {
@@ -811,6 +788,17 @@ func (c *Client) DeleteConvAIMCPServer(mcpServerID string) error {
 }
 
 // Conversational AI Phone Numbers
+func (c *Client) GetConvAIPhoneNumbers() ([]models.ConvAIPhoneNumber, error) {
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/phone-numbers", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var numbers []models.ConvAIPhoneNumber
+	err = c.doRequest(req, &numbers)
+	return numbers, err
+}
+
 func (c *Client) ImportConvAIPhoneNumber(addReq *models.ImportPhoneNumberRequest) (*models.ConvAIPhoneNumber, error) {
 	body, err := json.Marshal(addReq)
 	if err != nil {
@@ -850,6 +838,70 @@ func (c *Client) DeleteConvAIPhoneNumber(phoneNumberID string) error {
 	return c.doRequest(req, nil)
 }
 
+// Conversational AI WhatsApp Accounts
+func (c *Client) ListConvAIWhatsAppAccounts() ([]models.ConvAIWhatsAppAccount, error) {
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/whatsapp-accounts", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp models.ConvAIWhatsAppAccountListResponse
+	err = c.doRequest(req, &resp)
+	return resp.Items, err
+}
+
+func (c *Client) ImportConvAIWhatsAppAccount(addReq *models.ImportWhatsAppAccountRequest) (*models.ConvAIWhatsAppAccount, error) {
+	body, err := json.Marshal(addReq)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, baseURL+"/convai/whatsapp-accounts", bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+
+	var account models.ConvAIWhatsAppAccount
+	err = c.doRequest(req, &account)
+	return &account, err
+}
+
+func (c *Client) GetConvAIWhatsAppAccount(phoneNumberID string) (*models.ConvAIWhatsAppAccount, error) {
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/whatsapp-accounts/"+phoneNumberID, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var account models.ConvAIWhatsAppAccount
+	err = c.doRequest(req, &account)
+	return &account, err
+}
+
+func (c *Client) UpdateConvAIWhatsAppAccount(phoneNumberID string, updateReq *models.UpdateWhatsAppAccountRequest) (*models.ConvAIWhatsAppAccount, error) {
+	body, err := json.Marshal(updateReq)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPatch, baseURL+"/convai/whatsapp-accounts/"+phoneNumberID, bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+
+	var account models.ConvAIWhatsAppAccount
+	err = c.doRequest(req, &account)
+	return &account, err
+}
+
+func (c *Client) DeleteConvAIWhatsAppAccount(phoneNumberID string) error {
+	req, err := http.NewRequest(http.MethodDelete, baseURL+"/convai/whatsapp-accounts/"+phoneNumberID, nil)
+	if err != nil {
+		return err
+	}
+
+	return c.doRequest(req, nil)
+}
+
 // Conversational AI Settings
 func (c *Client) GetConvAISettings() (map[string]interface{}, error) {
 	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/settings", nil)
@@ -876,7 +928,151 @@ func (c *Client) UpdateConvAISettings(settings map[string]interface{}) error {
 	return c.doRequest(req, nil)
 }
 
+func (c *Client) GetConvAISecrets() ([]models.ConvAISecret, error) {
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/secrets", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var secrets []models.ConvAISecret
+	err = c.doRequest(req, &secrets)
+	return secrets, err
+}
+
+func (c *Client) GetConvAIConversation(conversationID string) (*map[string]interface{}, error) {
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/conversations/"+conversationID, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var conversation map[string]interface{}
+	err = c.doRequest(req, &conversation)
+	return &conversation, err
+}
+
+func (c *Client) DeleteConvAIConversation(conversationID string) error {
+	req, err := http.NewRequest(http.MethodDelete, baseURL+"/convai/conversations/"+conversationID, nil)
+	if err != nil {
+		return err
+	}
+
+	return c.doRequest(req, nil)
+}
+
+// Conversational AI Conversations
+func (c *Client) GetConvAIConversations() ([]map[string]interface{}, error) {
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/conversations", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var conversations []map[string]interface{}
+	err = c.doRequest(req, &conversations)
+	return conversations, err
+}
+
+// Dubbing
+type DubbingListResponse struct {
+	Dubs       []DubbingMetadata `json:"dubs"`
+	HasMore    bool              `json:"has_more"`
+	NextCursor string            `json:"next_cursor"`
+}
+
+type DubbingMetadata struct {
+	DubbingID     string `json:"dubbing_id"`
+	InputFileName string `json:"input_file_name"`
+	InputURL      string `json:"input_url"`
+	Status        string `json:"status"`
+	CreatedAt     string `json:"created_at"`
+}
+
+func (c *Client) GetDubs() (*DubbingListResponse, error) {
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/dubbing", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp DubbingListResponse
+	err = c.doRequest(req, &resp)
+	return &resp, err
+}
+
+func (c *Client) GetDubbing(dubbingID string) (*DubbingMetadata, error) {
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/dubbing/"+dubbingID, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var dub DubbingMetadata
+	err = c.doRequest(req, &dub)
+	return &dub, err
+}
+
+func (c *Client) DeleteDubbing(dubbingID string) error {
+	req, err := http.NewRequest(http.MethodDelete, baseURL+"/dubbing/"+dubbingID, nil)
+	if err != nil {
+		return err
+	}
+
+	return c.doRequest(req, nil)
+}
+
+// Conversational AI Dashboard Settings
+func (c *Client) GetConvAIDashboardSettings() (map[string]interface{}, error) {
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/dashboard/settings", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var settings map[string]interface{}
+	err = c.doRequest(req, &settings)
+	return settings, err
+}
+
+// Conversational AI Batch Calling
+func (c *Client) GetConvAIBatchCalls() ([]map[string]interface{}, error) {
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/batch-calling/workspace", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var batches []map[string]interface{}
+	err = c.doRequest(req, &batches)
+	return batches, err
+}
+
+func (c *Client) GetConvAIBatchCall(batchID string) (*map[string]interface{}, error) {
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/batch-calling/"+batchID, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var batch map[string]interface{}
+	err = c.doRequest(req, &batch)
+	return &batch, err
+}
+
+func (c *Client) CancelConvAIBatchCall(batchID string) error {
+	req, err := http.NewRequest(http.MethodPost, baseURL+"/convai/batch-calling/"+batchID+"/cancel", nil)
+	if err != nil {
+		return err
+	}
+
+	return c.doRequest(req, nil)
+}
+
 // Workspace Webhooks
+func (c *Client) ListWorkspaceWebhooks() ([]models.WorkspaceWebhook, error) {
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/workspace/webhooks", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var webhooks []models.WorkspaceWebhook
+	err = c.doRequest(req, &webhooks)
+	return webhooks, err
+}
+
 func (c *Client) CreateWorkspaceWebhook(addReq *models.CreateWorkspaceWebhookRequest) (*models.WorkspaceWebhook, error) {
 	body, err := json.Marshal(addReq)
 	if err != nil {
@@ -928,6 +1124,17 @@ func (c *Client) DeleteWorkspaceWebhook(webhookID string) error {
 }
 
 // Workspace Members
+func (c *Client) GetWorkspaceMembers() ([]models.WorkspaceMember, error) {
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/workspace/members", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var members []models.WorkspaceMember
+	err = c.doRequest(req, &members)
+	return members, err
+}
+
 func (c *Client) UpdateWorkspaceMember(userID string, updateReq *models.UpdateWorkspaceMemberRequest) error {
 	body, err := json.Marshal(updateReq)
 	if err != nil {
@@ -943,6 +1150,17 @@ func (c *Client) UpdateWorkspaceMember(userID string, updateReq *models.UpdateWo
 }
 
 // Workspace Invites
+func (c *Client) GetWorkspaceInvites() ([]models.WorkspaceInvite, error) {
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/workspace/invites", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var invites []models.WorkspaceInvite
+	err = c.doRequest(req, &invites)
+	return invites, err
+}
+
 func (c *Client) CreateWorkspaceInvite(addReq *models.CreateWorkspaceInviteRequest) error {
 	body, err := json.Marshal(addReq)
 	if err != nil {
@@ -969,7 +1187,18 @@ func (c *Client) DeleteWorkspaceInvite(email string) error {
 	return c.doRequest(req, nil)
 }
 
-// Workspace Group Memberships
+// Workspace Groups
+func (c *Client) SearchWorkspaceGroups(query string) ([]models.WorkspaceGroup, error) {
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/workspace/groups/search?search="+query, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var groups []models.WorkspaceGroup
+	err = c.doRequest(req, &groups)
+	return groups, err
+}
+
 func (c *Client) AddWorkspaceGroupMember(groupID, email string) error {
 	body := map[string]string{"email": email}
 	jsonBody, _ := json.Marshal(body)
@@ -994,7 +1223,29 @@ func (c *Client) RemoveWorkspaceGroupMember(groupID, email string) error {
 	return c.doRequest(req, nil)
 }
 
-// Service Account Keys
+// Service Accounts
+func (c *Client) GetWorkspaceServiceAccounts() ([]models.WorkspaceServiceAccount, error) {
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/service-accounts", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var accounts []models.WorkspaceServiceAccount
+	err = c.doRequest(req, &accounts)
+	return accounts, err
+}
+
+func (c *Client) GetServiceAccountAPIKeys(userID string) ([]models.ServiceAccountKey, error) {
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/service-accounts/"+userID+"/api-keys", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var keys []models.ServiceAccountKey
+	err = c.doRequest(req, &keys)
+	return keys, err
+}
+
 func (c *Client) CreateServiceAccountKey(userID string, addReq *models.CreateServiceAccountKeyRequest) (*models.ServiceAccountKey, error) {
 	body, err := json.Marshal(addReq)
 	if err != nil {
@@ -1020,7 +1271,29 @@ func (c *Client) DeleteServiceAccountKey(userID, keyID string) error {
 	return c.doRequest(req, nil)
 }
 
-// Resource Sharing
+// Workspace Resources
+func (c *Client) GetWorkspaceResources() ([]models.WorkspaceResource, error) {
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/workspace/resources", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var resources []models.WorkspaceResource
+	err = c.doRequest(req, &resources)
+	return resources, err
+}
+
+func (c *Client) GetWorkspaceResource(resourceID string) (*models.WorkspaceResource, error) {
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/workspace/resources/"+resourceID, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var resource models.WorkspaceResource
+	err = c.doRequest(req, &resource)
+	return &resource, err
+}
+
 func (c *Client) ShareResource(resourceID, resourceType, email, role string) error {
 	body := map[string]interface{}{
 		"email":         email,
@@ -1052,6 +1325,21 @@ func (c *Client) UnshareResource(resourceID, resourceType, email string) error {
 	return c.doRequest(req, nil)
 }
 
+func (c *Client) CopyResourceToWorkspace(resourceID, resourceType, targetWorkspaceID string) error {
+	body := map[string]interface{}{
+		"resource_type":       resourceType,
+		"target_workspace_id": targetWorkspaceID,
+	}
+	jsonBody, _ := json.Marshal(body)
+
+	req, err := http.NewRequest(http.MethodPost, baseURL+"/workspace/resources/"+resourceID+"/copy-to-workspace", bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return err
+	}
+
+	return c.doRequest(req, nil)
+}
+
 // Shared Voices
 func (c *Client) AddSharedVoice(publicUserID, voiceID, newName string) (string, error) {
 	body := map[string]string{"new_name": newName}
@@ -1067,57 +1355,6 @@ func (c *Client) AddSharedVoice(publicUserID, voiceID, newName string) (string, 
 	}
 	err = c.doRequest(req, &result)
 	return result.VoiceID, err
-}
-
-// Studio Chapters
-func (c *Client) CreateStudioChapter(projectID string, addReq *models.CreateStudioChapterRequest) (*models.StudioChapter, error) {
-	body, err := json.Marshal(addReq)
-	if err != nil {
-		return nil, err
-	}
-
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/studio/projects/"+projectID+"/chapters", bytes.NewBuffer(body))
-	if err != nil {
-		return nil, err
-	}
-
-	var chapter models.StudioChapter
-	err = c.doRequest(req, &chapter)
-	return &chapter, err
-}
-
-func (c *Client) GetStudioChapter(projectID, chapterID string) (*models.StudioChapter, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/studio/projects/"+projectID+"/chapters/"+chapterID, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	var chapter models.StudioChapter
-	err = c.doRequest(req, &chapter)
-	return &chapter, err
-}
-
-func (c *Client) UpdateStudioChapter(projectID, chapterID string, updateReq *models.CreateStudioChapterRequest) error {
-	body, err := json.Marshal(updateReq)
-	if err != nil {
-		return err
-	}
-
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/studio/projects/"+projectID+"/chapters/"+chapterID, bytes.NewBuffer(body))
-	if err != nil {
-		return err
-	}
-
-	return c.doRequest(req, nil)
-}
-
-func (c *Client) DeleteStudioChapter(projectID, chapterID string) error {
-	req, err := http.NewRequest(http.MethodDelete, baseURL+"/studio/projects/"+projectID+"/chapters/"+chapterID, nil)
-	if err != nil {
-		return err
-	}
-
-	return c.doRequest(req, nil)
 }
 
 // Voice Samples (Standalone)

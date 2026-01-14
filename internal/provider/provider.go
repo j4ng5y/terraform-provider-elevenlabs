@@ -78,7 +78,6 @@ func (p *ElevenLabsProvider) Resources(ctx context.Context) []func() resource.Re
 		NewProjectResource,
 		NewPronunciationDictionaryResource,
 		NewAudioNativeResource,
-		NewDubbingProjectResource,
 		NewConvAIAgentResource,
 		NewConvAIKnowledgeBaseResource,
 		NewConvAIToolResource,
@@ -87,15 +86,16 @@ func (p *ElevenLabsProvider) Resources(ctx context.Context) []func() resource.Re
 		NewWorkspaceInviteResource,
 		NewServiceAccountKeyResource,
 		NewVoiceSampleResource,
-		NewStudioChapterResource,
 		NewConvAIMCPServerResource,
 		NewConvAIPhoneNumberResource,
+		NewConvAIWhatsAppAccountResource,
 		NewWorkspaceMemberResource,
-		NewWorkspaceGroupMembershipResource,
+		NewWorkspaceGroupMemberResource,
 		NewConvAISettingsResource,
 		NewResourceShareResource,
 		NewConvAIAgentTestResource,
 		NewSharedVoiceResource,
+		NewConvAIConversationResource,
 	}
 }
 
@@ -106,6 +106,21 @@ func (p *ElevenLabsProvider) DataSources(ctx context.Context) []func() datasourc
 		NewProjectsDataSource,
 		NewPronunciationDictionariesDataSource,
 		NewConvAIAgentsDataSource,
+		NewConvAIKnowledgeBasesDataSource,
+		NewConvAIToolsDataSource,
+		NewConvAIWhatsAppAccountsDataSource,
+		NewConvAIPhoneNumbersDataSource,
+		NewConvAIConversationsDataSource,
+		NewConvAIMCPServersDataSource,
+		NewConvAIDashboardSettingsDataSource,
+		NewConvAISecretsDataSource,
+		NewConvAIBatchCallingDataSource,
+		NewWorkspaceMembersDataSource,
+		NewWorkspaceGroupsDataSource,
+		NewWorkspaceWebhooksDataSource,
+		NewWorkspaceServiceAccountsDataSource,
+		NewWorkspaceResourcesDataSource,
+		NewWorkspaceInvitesDataSource,
 	}
 }
 

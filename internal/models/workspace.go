@@ -34,3 +34,16 @@ type CreateServiceAccountKeyRequest struct {
 	Permissions    []string `json:"permissions"`
 	CharacterLimit int      `json:"character_limit,omitempty"`
 }
+
+type WorkspaceServiceAccount struct {
+	ServiceAccountUserID string `json:"service_account_user_id"`
+	Name                 string `json:"name"`
+}
+
+type WorkspaceResource struct {
+	ResourceID   string `json:"resource_id"`
+	ResourceType string `json:"resource_type"`
+	Name         string `json:"name"`
+	OwnerID      string `json:"owner_id"`
+	Shared       bool   `json:"shared"`
+}

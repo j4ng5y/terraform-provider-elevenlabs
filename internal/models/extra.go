@@ -31,11 +31,23 @@ type CreateConvAIMCPServerRequest struct {
 	URL  string `json:"url"`
 }
 
+type ConvAIPhoneNumberAgent struct {
+	AgentID   string `json:"agent_id"`
+	AgentName string `json:"agent_name"`
+}
+
 type ConvAIPhoneNumber struct {
-	PhoneNumberID string `json:"phone_number_id"`
-	PhoneNumber   string `json:"phone_number"`
-	Provider      string `json:"provider"`
-	Label         string `json:"label,omitempty"`
+	PhoneNumberID    string                  `json:"phone_number_id"`
+	PhoneNumber      string                  `json:"phone_number"`
+	Provider         string                  `json:"provider"`
+	Label            string                  `json:"label,omitempty"`
+	SupportsInbound  bool                    `json:"supports_inbound,omitempty"`
+	SupportsOutbound bool                    `json:"supports_outbound,omitempty"`
+	AssignedAgent    *ConvAIPhoneNumberAgent `json:"assigned_agent,omitempty"`
+	ProviderConfig   map[string]interface{}  `json:"provider_config,omitempty"`
+	OutboundTrunk    map[string]interface{}  `json:"outbound_trunk,omitempty"`
+	InboundTrunk     map[string]interface{}  `json:"inbound_trunk,omitempty"`
+	LivekitStack     map[string]interface{}  `json:"livekit_stack,omitempty"`
 }
 
 type ImportPhoneNumberRequest struct {

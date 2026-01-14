@@ -29,8 +29,8 @@ type WorkspaceInviteResource struct {
 }
 
 type WorkspaceInviteResourceModel struct {
-	Email               types.String `tfsdk:"email"`
-	WorkspacePermission types.String `tfsdk:"workspace_permission"`
+	Email types.String `tfsdk:"email"`
+	Role  types.String `tfsdk:"role"`
 }
 
 func (r *WorkspaceInviteResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -47,7 +47,7 @@ func (r *WorkspaceInviteResource) Schema(ctx context.Context, req resource.Schem
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"workspace_permission": schema.StringAttribute{
+			"role": schema.StringAttribute{
 				Required:            true,
 				MarkdownDescription: "Permission level for the user. e.g., `workspace_member`, `workspace_admin`, `admin`.",
 			},
@@ -81,7 +81,7 @@ func (r *WorkspaceInviteResource) Create(ctx context.Context, req resource.Creat
 
 	addReq := &models.CreateWorkspaceInviteRequest{
 		Email:               data.Email.ValueString(),
-		WorkspacePermission: data.WorkspacePermission.ValueString(),
+		WorkspacePermission: data.Role.ValueString(),
 	}
 
 	err := r.client.CreateWorkspaceInvite(addReq)

@@ -107,9 +107,7 @@ func (r *ServiceAccountKeyResource) Create(ctx context.Context, req resource.Cre
 	}
 
 	addReq := &models.CreateServiceAccountKeyRequest{
-		Name:           data.Name.ValueString(),
-		Permissions:    permissions,
-		CharacterLimit: int(data.CharacterLimit.ValueInt64()),
+		Name: data.Name.ValueString(),
 	}
 
 	key, err := r.client.CreateServiceAccountKey(data.UserID.ValueString(), addReq)
@@ -119,7 +117,6 @@ func (r *ServiceAccountKeyResource) Create(ctx context.Context, req resource.Cre
 	}
 
 	data.ID = types.StringValue(key.KeyID)
-	data.XiApiKey = types.StringValue(key.XiApiKey)
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
