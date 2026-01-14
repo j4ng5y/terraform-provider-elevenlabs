@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# Build the provider
+go build -o terraform-provider-elevenlabs
+
+# Create a local registry mirror for testing
+mkdir -p ~/.terraform.d/plugins/registry.terraform.io/j4ng5y/elevenlabs/0.1.0/linux_amd64
+
+# Copy the built provider to the local registry location
+cp terraform-provider-elevenlabs ~/.terraform.d/plugins/registry.terraform.io/j4ng5y/elevenlabs/0.1.0/linux_amd64/
+
+# Make it executable
+chmod +x ~/.terraform.d/plugins/registry.terraform.io/j4ng5y/elevenlabs/0.1.0/linux_amd64/terraform-provider-elevenlabs
