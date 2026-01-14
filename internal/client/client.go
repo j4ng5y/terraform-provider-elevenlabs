@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 
 	"github.com/j4ng5y/terraform-provider-elevenlabs/internal/models"
 )
@@ -19,12 +20,14 @@ const baseURL = "https://api.elevenlabs.io/v1"
 type Client struct {
 	apiKey     string
 	httpClient *http.Client
+	baseURL    string
 }
 
 func NewClient(apiKey string) *Client {
 	return &Client{
 		apiKey:     apiKey,
 		httpClient: &http.Client{},
+		baseURL:    baseURL,
 	}
 }
 
@@ -351,6 +354,67 @@ func (c *Client) ArchivePronunciationDictionary(dictionaryID string) error {
 	return c.doRequest(req, nil)
 }
 
+func (c *Client) UpdatePronunciationDictionary(dictionaryID string, name string, archived *bool) error {
+	body := make(map[string]interface{})
+	if name != "" {
+		body["name"] = name
+	}
+	if archived != nil {
+		body["archived"] = *archived
+	}
+
+	if len(body) == 0 {
+		return nil
+	}
+
+	jsonBody, _ := json.Marshal(body)
+	req, err := http.NewRequest(http.MethodPatch, baseURL+"/pronunciation-dictionaries/"+dictionaryID, bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return err
+	}
+
+	return c.doRequest(req, nil)
+}
+
+func (c *Client) AddPronunciationDictionaryRules(dictionaryID string, rules []models.PronunciationRule) error {
+	body, err := json.Marshal(map[string][]models.PronunciationRule{"rules": rules})
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, baseURL+"/pronunciation-dictionaries/"+dictionaryID+"/add-rules", bytes.NewBuffer(body))
+	if err != nil {
+		return err
+	}
+
+	return c.doRequest(req, nil)
+}
+
+func (c *Client) RemovePronunciationDictionaryRules(dictionaryID string, rules []models.PronunciationRule) error {
+	body, err := json.Marshal(map[string][]models.PronunciationRule{"rules": rules})
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, baseURL+"/pronunciation-dictionaries/"+dictionaryID+"/remove-rules", bytes.NewBuffer(body))
+	if err != nil {
+		return err
+	}
+
+	return c.doRequest(req, nil)
+}
+
+func (c *Client) DownloadPronunciationDictionary(dictionaryID string, versionID string) ([]byte, error) {
+	req, err := http.NewRequest(http.MethodGet, baseURL+"/pronunciation-dictionaries/"+dictionaryID+"/"+versionID+"/download", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var data []byte
+	err = c.doRequest(req, &data)
+	return data, err
+}
+
 // Audio Native
 func (c *Client) CreateAudioNative(addReq *models.CreateAudioNativeRequest) (*models.AudioNativeProject, error) {
 	body := &bytes.Buffer{}
@@ -423,6 +487,48 @@ func (c *Client) GetAudioNativeSettings(projectID string) (*models.AudioNativeSe
 	return &settings, err
 }
 
+func (c *Client) UpdateAudioNativeContent(projectID string, filePath string, voiceID string, modelID string) error {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	if voiceID != "" {
+		_ = writer.WriteField("voice_id", voiceID)
+	}
+	if modelID != "" {
+		_ = writer.WriteField("model_id", modelID)
+	}
+
+	if filePath != "" {
+		file, err := os.Open(filePath)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		part, err := writer.CreateFormFile("file", filepath.Base(filePath))
+		if err != nil {
+			return err
+		}
+		_, err = io.Copy(part, file)
+		if err != nil {
+			return err
+		}
+	}
+
+	err := writer.Close()
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, baseURL+"/audio-native/"+projectID+"/content", body)
+	if err != nil {
+		return err
+	}
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+
+	return c.doRequest(req, nil)
+}
+
 // Conversational AI Agents
 func (c *Client) GetConvAIAgents() ([]models.ConvAIAgent, error) {
 	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/agents", nil)
@@ -432,6 +538,37 @@ func (c *Client) GetConvAIAgents() ([]models.ConvAIAgent, error) {
 
 	var wrapper struct {
 		Agents []models.ConvAIAgent `json:"agents"`
+	}
+	err = c.doRequest(req, &wrapper)
+	return wrapper.Agents, err
+}
+
+func (c *Client) GetConvAIAgentsFiltered(pageSize int, search string, archived, showOnlyOwned bool) ([]map[string]interface{}, error) {
+	url := baseURL + "/convai/agents?"
+	if pageSize > 0 {
+		url += fmt.Sprintf("page_size=%d&", pageSize)
+	}
+	if search != "" {
+		url += fmt.Sprintf("search=%s&", search)
+	}
+	if archived {
+		url += "archived=true&"
+	}
+	if showOnlyOwned {
+		url += "show_only_owned_agents=true&"
+	}
+
+	// Remove trailing & or ?
+	url = strings.TrimSuffix(url, "&")
+	url = strings.TrimSuffix(url, "?")
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var wrapper struct {
+		Agents []map[string]interface{} `json:"agents"`
 	}
 	err = c.doRequest(req, &wrapper)
 	return wrapper.Agents, err
@@ -478,6 +615,27 @@ func (c *Client) UpdateConvAIAgent(agentID string, updateReq *models.CreateConvA
 	return c.doRequest(req, nil)
 }
 
+func (c *Client) DuplicateConvAIAgent(agentID string, name string) (*models.ConvAIAgent, error) {
+	body := map[string]string{}
+	if name != "" {
+		body["name"] = name
+	}
+
+	jsonBody, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, baseURL+"/convai/agents/"+agentID+"/duplicate", bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return nil, err
+	}
+
+	var agent models.ConvAIAgent
+	err = c.doRequest(req, &agent)
+	return &agent, err
+}
+
 func (c *Client) DeleteConvAIAgent(agentID string) error {
 	req, err := http.NewRequest(http.MethodDelete, baseURL+"/convai/agents/"+agentID, nil)
 	if err != nil {
@@ -485,6 +643,74 @@ func (c *Client) DeleteConvAIAgent(agentID string) error {
 	}
 
 	return c.doRequest(req, nil)
+}
+
+func (c *Client) CalculateLLMUsage(agentID string, promptLength int, numberOfPages int, ragEnabled bool) (map[string]interface{}, error) {
+	body := map[string]interface{}{
+		"prompt_length":   promptLength,
+		"number_of_pages": numberOfPages,
+		"rag_enabled":     ragEnabled,
+	}
+
+	jsonBody, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, baseURL+"/convai/agent/"+agentID+"/llm-usage/calculate", bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return nil, err
+	}
+
+	var result map[string]interface{}
+	err = c.doRequest(req, &result)
+	return result, err
+}
+
+func (c *Client) RunConvAIAgentTests(agentID string, testIDs []string, agentConfig map[string]interface{}) (map[string]interface{}, error) {
+	body := map[string]interface{}{
+		"test_ids": testIDs,
+	}
+	if agentConfig != nil {
+		body["agent_configuration"] = agentConfig
+	}
+
+	jsonBody, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, baseURL+"/convai/agents/"+agentID+"/run-tests", bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return nil, err
+	}
+
+	var result map[string]interface{}
+	err = c.doRequest(req, &result)
+	return result, err
+}
+
+func (c *Client) SimulateConversation(agentID string, chatHistory []map[string]interface{}, agentConfig map[string]interface{}) (map[string]interface{}, error) {
+	body := map[string]interface{}{
+		"chat_history": chatHistory,
+	}
+	if agentConfig != nil {
+		body["agent_configuration"] = agentConfig
+	}
+
+	jsonBody, err := json.Marshal(body)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, baseURL+"/convai/agents/"+agentID+"/simulate-conversation", bytes.NewBuffer(jsonBody))
+	if err != nil {
+		return nil, err
+	}
+
+	var result map[string]interface{}
+	err = c.doRequest(req, &result)
+	return result, err
 }
 
 // Conversational AI Knowledge Base
@@ -971,6 +1197,25 @@ func (c *Client) GetConvAIConversations() ([]map[string]interface{}, error) {
 	return conversations, err
 }
 
+func (c *Client) GetConvAISignedUrl(agentID string, includeConversationID bool) (string, string, error) {
+	url := baseURL + "/convai/conversation/get-signed-url?agent_id=" + agentID
+	if includeConversationID {
+		url += "&include_conversation_id=true"
+	}
+
+	req, err := http.NewRequest(http.MethodGet, url, nil)
+	if err != nil {
+		return "", "", err
+	}
+
+	var response struct {
+		ConversationSignature string `json:"conversation_signature"`
+		ConversationID        string `json:"conversation_id,omitempty"`
+	}
+	err = c.doRequest(req, &response)
+	return response.ConversationSignature, response.ConversationID, err
+}
+
 // Dubbing
 type DubbingListResponse struct {
 	Dubs       []DubbingMetadata `json:"dubs"`
@@ -1395,6 +1640,210 @@ func (c *Client) AddVoiceSample(voiceID string, addReq *models.AddVoiceSampleReq
 
 func (c *Client) DeleteVoiceSample(voiceID, sampleID string) error {
 	req, err := http.NewRequest(http.MethodDelete, baseURL+"/voices/"+voiceID+"/samples/"+sampleID, nil)
+	if err != nil {
+		return err
+	}
+
+	return c.doRequest(req, nil)
+}
+
+// PVC Voice methods
+
+// CreatePVCVoice creates a new Professional Voice Cloning voice
+func (c *Client) CreatePVCVoice(createReq *models.CreatePVCVoiceRequest) (*models.PVCVoice, error) {
+	jsonData, err := json.Marshal(createReq)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/voices/pvc", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return nil, err
+	}
+
+	var response models.PVCVoice
+	err = c.doRequest(req, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
+// GetPVCVoice retrieves a PVC voice by ID
+func (c *Client) GetPVCVoice(voiceID string) (*models.PVCVoice, error) {
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/voices/pvc/"+voiceID, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var voice models.PVCVoice
+	err = c.doRequest(req, &voice)
+	if err != nil {
+		return nil, err
+	}
+
+	return &voice, nil
+}
+
+// ListPVCVoices retrieves all PVC voices
+func (c *Client) ListPVCVoices() (*models.PVCVoiceListResponse, error) {
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/voices/pvc", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var response models.PVCVoiceListResponse
+	err = c.doRequest(req, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
+// UpdatePVCVoice updates a PVC voice
+func (c *Client) UpdatePVCVoice(voiceID string, updateReq *models.UpdatePVCVoiceRequest) error {
+	jsonData, err := json.Marshal(updateReq)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(http.MethodPatch, c.baseURL+"/voices/pvc/"+voiceID, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+
+	return c.doRequest(req, nil)
+}
+
+// DeletePVCVoice deletes a PVC voice
+func (c *Client) DeletePVCVoice(voiceID string) error {
+	req, err := http.NewRequest(http.MethodDelete, c.baseURL+"/voices/pvc/"+voiceID, nil)
+	if err != nil {
+		return err
+	}
+
+	return c.doRequest(req, nil)
+}
+
+// AddPVCVoiceSample adds a training sample to a PVC voice
+func (c *Client) AddPVCVoiceSample(voiceID string, addReq *models.AddPVCVoiceSampleRequest) (*models.PVCVoiceSample, error) {
+	file, err := os.Open(addReq.FilePath)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
+
+	fw, err := w.CreateFormFile("file", filepath.Base(addReq.FilePath))
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = io.Copy(fw, file)
+	if err != nil {
+		return nil, err
+	}
+
+	w.Close()
+
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/voices/pvc/"+voiceID+"/samples", &b)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", w.FormDataContentType())
+
+	var sample models.PVCVoiceSample
+	err = c.doRequest(req, &sample)
+	if err != nil {
+		return nil, err
+	}
+
+	return &sample, nil
+}
+
+// ListPVCVoiceSamples retrieves all samples for a PVC voice
+func (c *Client) ListPVCVoiceSamples(voiceID string) (*models.PVCVoiceSampleListResponse, error) {
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/voices/pvc/"+voiceID+"/samples", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var response models.PVCVoiceSampleListResponse
+	err = c.doRequest(req, &response)
+	if err != nil {
+		return nil, err
+	}
+
+	return &response, nil
+}
+
+// UpdatePVCVoiceSample updates a PVC voice sample
+func (c *Client) UpdatePVCVoiceSample(voiceID, sampleID string, updateReq *models.UpdatePVCVoiceSampleRequest) error {
+	jsonData, err := json.Marshal(updateReq)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(http.MethodPatch, c.baseURL+"/voices/pvc/"+voiceID+"/samples/"+sampleID, bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+
+	return c.doRequest(req, nil)
+}
+
+// DeletePVCVoiceSample deletes a PVC voice sample
+func (c *Client) DeletePVCVoiceSample(voiceID, sampleID string) error {
+	req, err := http.NewRequest(http.MethodDelete, c.baseURL+"/voices/pvc/"+voiceID+"/samples/"+sampleID, nil)
+	if err != nil {
+		return err
+	}
+
+	return c.doRequest(req, nil)
+}
+
+// StartPVCVoiceTraining starts training for a PVC voice
+func (c *Client) StartPVCVoiceTraining(voiceID string, trainReq *models.PVCVoiceTrainingRequest) error {
+	jsonData, err := json.Marshal(trainReq)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/voices/pvc/"+voiceID+"/train", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+
+	return c.doRequest(req, nil)
+}
+
+// RequestPVCVoiceVerification requests manual verification for a PVC voice
+func (c *Client) RequestPVCVoiceVerification(voiceID string, verReq *models.PVCVoiceVerificationRequest) error {
+	jsonData, err := json.Marshal(verReq)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/voices/pvc/"+voiceID+"/verification", bytes.NewBuffer(jsonData))
+	if err != nil {
+		return err
+	}
+
+	return c.doRequest(req, nil)
+}
+
+// HandlePVCVoiceCaptcha handles captcha for PVC voice verification
+func (c *Client) HandlePVCVoiceCaptcha(voiceID string, captchaReq *models.PVCVoiceCaptchaRequest) error {
+	jsonData, err := json.Marshal(captchaReq)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/voices/pvc/"+voiceID+"/verification/captcha", bytes.NewBuffer(jsonData))
 	if err != nil {
 		return err
 	}

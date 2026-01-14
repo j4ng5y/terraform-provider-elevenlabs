@@ -9,6 +9,7 @@ The ElevenLabs Terraform provider allows you to manage your ElevenLabs resources
 ## Features
 
 - **Voice Management**: Create, edit, and delete custom cloned voices with multipart file support.
+- **PVC Voice Cloning**: Professional Voice Cloning with enterprise-grade voice training and verification.
 - **ElevenLabs Studio Projects**: Manage long-form content projects programmatically.
 - **Model Discovery**: Data source to fetch available models and their capabilities.
 - **Modern Architecture**: Built with Terraform Plugin Framework for better performance and type safety.
@@ -70,6 +71,36 @@ resource "elevenlabs_voice" "brand_voice" {
   }
 }
 
+# Create a Professional Voice Clone for enterprise use
+resource "elevenlabs_pvc_voice" "enterprise_voice" {
+  name        = "Enterprise Narrator"
+  language    = "en"
+  description = "High-quality voice for corporate training videos."
+  labels = {
+    "department" = "training"
+    "quality"    = "enterprise"
+  }
+}
+
+# Add training samples to the PVC voice
+resource "elevenlabs_pvc_voice_sample" "sample_1" {
+  voice_id   = elevenlabs_pvc_voice.enterprise_voice.id
+  file_path  = "./training_samples/sample1.wav"
+}
+
+resource "elevenlabs_pvc_voice_sample" "sample_2" {
+  voice_id   = elevenlabs_pvc_voice.enterprise_voice.id
+  file_path  = "./training_samples/sample2.wav"
+}
+
+# List all PVC voices
+data "elevenlabs_pvc_voices" "all" {}
+
+# List samples for a specific PVC voice
+data "elevenlabs_pvc_voice_samples" "enterprise_samples" {
+  voice_id = elevenlabs_pvc_voice.enterprise_voice.id
+}
+
 # Initialize a Studio project using the brand voice
 resource "elevenlabs_project" "quarterly_update" {
   name                    = "Q4 Executive Update"
@@ -84,10 +115,14 @@ Full documentation for resources and data sources can be found on the [Terraform
 
 ### Resources
 - [elevenlabs_voice](./docs/resources/voice.md)
+- [elevenlabs_pvc_voice](./docs/resources/pvc_voice.md)
+- [elevenlabs_pvc_voice_sample](./docs/resources/pvc_voice_sample.md)
 - [elevenlabs_project](./docs/resources/project.md)
 
 ### Data Sources
 - [elevenlabs_models](./docs/data-sources/models.md)
+- [elevenlabs_pvc_voices](./docs/data-sources/pvc_voices.md)
+- [elevenlabs_pvc_voice_samples](./docs/data-sources/pvc_voice_samples.md)
 
 ## Development
 
