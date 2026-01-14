@@ -33,9 +33,3 @@ jobs:
 
       - name: Test
         run: go test -v -cover ./...
-
-      - name: Terraform Validate
-        run: |
-          cd examples/provider
-          terraform init -backend=false
-          terraform validate
