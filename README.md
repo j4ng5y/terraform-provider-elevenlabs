@@ -198,19 +198,20 @@ The current backlog is dominated by the following CRUD-heavy domains (counts pul
 2. **Workspace & Enterprise (13 combined)** – SSO groups, entitlements, and enterprise organization management.
 3. **PVC Voices (~13 ops)** – voice model versions and fine-tuning operations.
 
-Target Terraform types to add next (Agents Platform focus):
+Target Terraform types to add next (ConvAI focus):
 
-- Data sources: `elevenlabs_convai_conversations`, `elevenlabs_convai_knowledge_bases`, `elevenlabs_convai_tools`, `elevenlabs_convai_phone_numbers`, `elevenlabs_convai_whatsapp_accounts`, `elevenlabs_convai_mcp_servers`.
-- Resources: `elevenlabs_convai_whatsapp_account`, `elevenlabs_convai_mcp_tool_config`, `elevenlabs_convai_mcp_tool_approval`, `elevenlabs_convai_knowledge_base_rag_index`, `elevenlabs_convai_conversation`.
+- Resources: `elevenlabs_convai_mcp_tool_config`, `elevenlabs_convai_mcp_tool_approval`, `elevenlabs_convai_knowledge_base_rag_index`.
 
-These priorities cover every persistent CRUD API that is still missing from the provider. The remaining action-only endpoints (text-to-speech rendering, outbound call simulators, etc.) stay outside Terraform scope per the current design agreement.
+These are the remaining persistent CRUD APIs that are still missing from the provider. The action-only endpoints (text-to-speech rendering, outbound call simulators, etc.) stay outside Terraform scope per the current design agreement.
 
 ## Roadmap
 
-- [ ] Support for **Pronunciation Dictionaries**
-- [ ] Support for **Audio Native** player settings
+- [x] **Pronunciation Dictionaries**
+- [x] **Audio Native** player settings
 - [x] Dedicated **Voice Sample** resource for incremental updates
-- [ ] **ConvAI Agents Platform** - Complete coverage (conversations, knowledge bases, tools, MCP servers)
+- [x] **ConvAI Agents Platform** core CRUD (agents, tools, knowledge bases, MCP servers, phone numbers, WhatsApp, conversations)
+- [ ] **ConvAI MCP tool configuration/approval** resources
+- [ ] **ConvAI knowledge base RAG index** resource
 - [x] **Workspace and Enterprise** management (members, groups, invites, service accounts)
 
 ## Contributing
