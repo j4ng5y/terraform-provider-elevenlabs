@@ -11,6 +11,11 @@ fi
 
 TOFU_BIN="${TOFU_BIN:-tofu}"
 
+if ! command -v "$TOFU_BIN" >/dev/null 2>&1; then
+  echo "TOFU_BIN '$TOFU_BIN' not found on PATH." >&2
+  exit 1
+fi
+
 "$ROOT_DIR/scripts/setup-local-provider.sh"
 
 TF_CLI_CONFIG_FILE="$(mktemp)"

@@ -36,9 +36,13 @@ jobs:
         run: go test -v -cover ./...
 
   integration:
-    name: Integration Tests
+    name: Integration Tests (${{ matrix.cli }})
     runs-on: ubuntu-latest
     needs: build
+    strategy:
+      fail-fast: false
+      matrix:
+        cli: [tofu, terraform]
     steps:
       - uses: actions/checkout@v4
 
@@ -51,7 +55,13 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v3
 
+      - name: Set up OpenTofu
+        uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: latest
+
       - name: Run integration tests
         env:
           TF_VAR_api_key: ${{ secrets.ELEVENLABS_API_KEY }}
+          TOFU_BIN: ${{ matrix.cli }}
         run: scripts/run-integration-tests.sh
