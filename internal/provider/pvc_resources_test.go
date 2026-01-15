@@ -24,7 +24,7 @@ func TestAccPVCResources(t *testing.T) {
 			Handler: func(w http.ResponseWriter, r *http.Request) {
 				w.Header().Set("Content-Type", "application/json")
 				w.WriteHeader(http.StatusOK)
-				_, _ = w.Write([]byte(fmt.Sprintf(`{"voice_id":"voice-123","name":"PVC Voice","language":"en","description":"%s","state":"ready","verification":"verified"}`, description)))
+				_, _ = fmt.Fprintf(w, `{"voice_id":"voice-123","name":"PVC Voice","language":"en","description":"%s","state":"ready","verification":"verified"}`, description)
 			},
 		},
 		{

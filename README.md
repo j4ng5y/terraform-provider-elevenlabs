@@ -168,6 +168,16 @@ export ELEVENLABS_API_KEY="..."
 go test -v ./internal/provider/
 ```
 
+To run integration tests with OpenTofu and the local provider build:
+```bash
+source .env
+scripts/run-integration-tests.sh
+```
+
+The integration runner builds and installs a local provider mirror for both Terraform
+and OpenTofu, then uses a temporary CLI config to point OpenTofu at the local mirror.
+This avoids registry lookups during development.
+
 ### API Coverage Tracking
 
 Use the OpenAPI coverage command to understand how much of the ElevenLabs surface area currently has Terraform parity:
@@ -210,4 +220,3 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-

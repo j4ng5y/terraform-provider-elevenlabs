@@ -16,11 +16,11 @@ func TestAccProjectResource(t *testing.T) {
 		switch {
 		case r.Method == http.MethodGet && r.URL.Path == "/projects":
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"projects": [{"project_id": "project-123", "name": "Test Project", "state": "default"}]}`))
+			_, _ = w.Write([]byte(`{"projects": [{"project_id": "project-123", "name": "Test Project", "state": "default"}]}`))
 
 		case r.Method == http.MethodGet && r.URL.Path == "/projects/project-123":
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{
+			_, _ = w.Write([]byte(`{
 				"project_id": "project-123",
 				"name": "Test Project",
 				"default_model_id": "model-1",
@@ -31,7 +31,7 @@ func TestAccProjectResource(t *testing.T) {
 
 		case r.Method == http.MethodPost && r.URL.Path == "/projects":
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{
+			_, _ = w.Write([]byte(`{
 				"project_id": "project-123",
 				"name": "Test Project",
 				"default_model_id": "model-1",

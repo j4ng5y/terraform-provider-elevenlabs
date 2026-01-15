@@ -17,7 +17,7 @@ func TestAccConvAISecretResource(t *testing.T) {
 		// Create Secret
 		if r.Method == http.MethodPost && r.URL.Path == "/convai/secrets" {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{
+			_, _ = w.Write([]byte(`{
 				"secret_id": "secret-123",
 				"name": "test-secret",
 				"created_at_unix_secs": 1600000000
@@ -28,7 +28,7 @@ func TestAccConvAISecretResource(t *testing.T) {
 		// Read Secret
 		if r.Method == http.MethodGet && r.URL.Path == "/convai/secrets/secret-123" {
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{
+			_, _ = w.Write([]byte(`{
 				"secret_id": "secret-123",
 				"name": "test-secret",
 				"created_at_unix_secs": 1600000000

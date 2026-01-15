@@ -25,11 +25,11 @@ func TestAccVoiceResource(t *testing.T) {
 		switch {
 		case r.Method == http.MethodGet && r.URL.Path == "/voices":
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"voices": [{"voice_id": "voice-123", "name": "Test Voice", "category": "cloned"}]}`))
+			_, _ = w.Write([]byte(`{"voices": [{"voice_id": "voice-123", "name": "Test Voice", "category": "cloned"}]}`))
 		
 		case r.Method == http.MethodGet && r.URL.Path == "/voices/voice-123":
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{
+			_, _ = w.Write([]byte(`{
 				"voice_id": "voice-123",
 				"name": "Test Voice",
 				"description": "A test voice",
@@ -44,7 +44,7 @@ func TestAccVoiceResource(t *testing.T) {
 
 		case r.Method == http.MethodPost && r.URL.Path == "/voices/add":
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"voice_id": "voice-123"}`))
+			_, _ = w.Write([]byte(`{"voice_id": "voice-123"}`))
 
 		case r.Method == http.MethodPost && r.URL.Path == "/voices/voice-123/edit":
 			w.WriteHeader(http.StatusOK)

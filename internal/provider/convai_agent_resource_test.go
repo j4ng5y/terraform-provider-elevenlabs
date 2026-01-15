@@ -16,11 +16,11 @@ func TestAccConvAIAgentResource(t *testing.T) {
 		switch {
 		case r.Method == http.MethodGet && r.URL.Path == "/convai/agents":
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{"agents": [{"agent_id": "agent-123", "name": "Test Agent"}]}`))
+			_, _ = w.Write([]byte(`{"agents": [{"agent_id": "agent-123", "name": "Test Agent"}]}`))
 
 		case r.Method == http.MethodGet && r.URL.Path == "/convai/agents/agent-123":
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{
+			_, _ = w.Write([]byte(`{
 				"agent_id": "agent-123",
 				"name": "Test Agent",
 				"config": {
@@ -33,7 +33,7 @@ func TestAccConvAIAgentResource(t *testing.T) {
 
 		case r.Method == http.MethodPost && r.URL.Path == "/convai/agents/create":
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte(`{
+			_, _ = w.Write([]byte(`{
 				"agent_id": "agent-123",
 				"name": "Test Agent",
 				"config": {
