@@ -23,6 +23,8 @@ resource "service_account_key" "example" {
 
 ## Import
 
+You can find the ID in the ElevenLabs dashboard or retrieve it via the relevant data source in this provider.
+
 ```bash
 terraform import service_account_key.example <resource_id>
 ```

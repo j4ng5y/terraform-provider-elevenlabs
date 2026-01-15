@@ -28,6 +28,8 @@ resource "elevenlabs_convai_mcp_tool_approval" "lookup" {
 
 ## Import
 
+Use the MCP server ID from `elevenlabs_convai_mcp_servers` and the tool name from your MCP server configuration (tools list).
+
 Tool approvals can be imported using the composite ID:
 
 ```bash

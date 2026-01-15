@@ -32,6 +32,8 @@ resource "elevenlabs_pvc_voice" "enterprise_voice" {
 
 ## Import
 
+You can find the ID in the ElevenLabs dashboard or retrieve it via the relevant data source in this provider.
+
 PVC voices can be imported using the voice ID:
 
 ```bash

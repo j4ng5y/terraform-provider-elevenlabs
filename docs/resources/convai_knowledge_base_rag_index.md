@@ -30,6 +30,8 @@ resource "elevenlabs_convai_knowledge_base_rag_index" "rag" {
 
 ## Import
 
+Use the knowledge base document ID from `elevenlabs_convai_knowledge_bases` (or the knowledge base resource) and the RAG index ID from the knowledge base RAG index list endpoint.
+
 RAG indexes can be imported using the composite ID:
 
 ```bash

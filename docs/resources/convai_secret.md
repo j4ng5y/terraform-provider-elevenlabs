@@ -20,6 +20,8 @@ resource "convai_secret" "example" {
 
 ## Import
 
+You can find the ID in the ElevenLabs dashboard or retrieve it via the relevant data source in this provider.
+
 ```bash
 terraform import convai_secret.example <resource_id>
 ```

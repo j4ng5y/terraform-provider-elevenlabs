@@ -27,6 +27,8 @@ resource "project" "example" {
 
 ## Import
 
+You can find the ID in the ElevenLabs dashboard or retrieve it via the relevant data source in this provider.
+
 ```bash
 terraform import project.example <resource_id>
 ```

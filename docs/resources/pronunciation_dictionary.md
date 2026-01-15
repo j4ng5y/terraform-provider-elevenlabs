@@ -28,6 +28,8 @@ resource "pronunciation_dictionary" "example" {
 
 ## Import
 
+You can find the ID in the ElevenLabs dashboard or retrieve it via the relevant data source in this provider.
+
 ```bash
 terraform import pronunciation_dictionary.example <resource_id>
 ```

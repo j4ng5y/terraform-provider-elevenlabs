@@ -20,6 +20,8 @@ resource "workspace_member" "example" {
 
 ## Import
 
+You can find the ID in the ElevenLabs dashboard or retrieve it via the relevant data source in this provider.
+
 ```bash
 terraform import workspace_member.example <resource_id>
 ```

@@ -31,6 +31,8 @@ resource "audio_native" "example" {
 
 ## Import
 
+You can find the ID in the ElevenLabs dashboard or retrieve it via the relevant data source in this provider.
+
 ```bash
 terraform import audio_native.example <resource_id>
 ```

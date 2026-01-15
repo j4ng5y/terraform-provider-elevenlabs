@@ -24,6 +24,8 @@ resource "shared_voice" "example" {
 
 ## Import
 
+You can find the ID in the ElevenLabs dashboard or retrieve it via the relevant data source in this provider.
+
 ```bash
 terraform import shared_voice.example <resource_id>
 ```
