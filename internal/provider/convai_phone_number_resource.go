@@ -31,7 +31,7 @@ type ConvAIPhoneNumberResource struct {
 type ConvAIPhoneNumberResourceModel struct {
 	ID          types.String `tfsdk:"id"`
 	PhoneNumber types.String `tfsdk:"phone_number"`
-	Provider    types.String `tfsdk:"provider"`
+	Provider    types.String `tfsdk:"telephony_provider"`
 	Label       types.String `tfsdk:"label"`
 }
 
@@ -55,7 +55,7 @@ func (r *ConvAIPhoneNumberResource) Schema(ctx context.Context, req resource.Sch
 					stringplanmodifier.RequiresReplace(),
 				},
 			},
-			"provider": schema.StringAttribute{
+			"telephony_provider": schema.StringAttribute{
 				Required: true,
 				PlanModifiers: []planmodifier.String{
 					stringplanmodifier.RequiresReplace(),

@@ -170,6 +170,8 @@ func (r *PVCVoiceResource) Create(ctx context.Context, req resource.CreateReques
 			return
 		}
 		data.Labels = labels
+	} else if data.Labels.IsUnknown() {
+		data.Labels = types.MapNull(types.StringType)
 	}
 
 	if voice.Settings != nil {
@@ -212,6 +214,8 @@ func (r *PVCVoiceResource) Read(ctx context.Context, req resource.ReadRequest, r
 			return
 		}
 		data.Labels = labels
+	} else if data.Labels.IsUnknown() {
+		data.Labels = types.MapNull(types.StringType)
 	}
 
 	if voice.Settings != nil {
@@ -264,6 +268,17 @@ func (r *PVCVoiceResource) Update(ctx context.Context, req resource.UpdateReques
 
 	data.State = types.StringValue(voice.State)
 	data.Verification = types.StringValue(voice.Verification)
+
+	if voice.Labels != nil {
+		labels, diags := types.MapValueFrom(ctx, types.StringType, voice.Labels)
+		resp.Diagnostics.Append(diags...)
+		if resp.Diagnostics.HasError() {
+			return
+		}
+		data.Labels = labels
+	} else if data.Labels.IsUnknown() {
+		data.Labels = types.MapNull(types.StringType)
+	}
 
 	if voice.Settings != nil {
 		data.Settings = &VoiceSettings{

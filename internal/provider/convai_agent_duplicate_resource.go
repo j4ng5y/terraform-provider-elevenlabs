@@ -27,7 +27,8 @@ type ConvAIAgentDuplicatorResourceModel struct {
 	SourceAgentID   types.String `tfsdk:"source_agent_id"`
 	NewAgentName    types.String `tfsdk:"new_agent_name"`
 	NewAgentID      types.String `tfsdk:"new_agent_id"`
-	NewAgentNameGet types.String `tfsdk:"new_agent_name"`
+	NewAgentNameGet types.String `tfsdk:"new_agent_name_get"`
+	CreatedAt       types.String `tfsdk:"created_at"`
 }
 
 func (r *ConvAIAgentDuplicatorResource) Metadata(ctx context.Context, req resource.MetadataRequest, resp *resource.MetadataResponse) {
@@ -96,6 +97,7 @@ func (r *ConvAIAgentDuplicatorResource) Create(ctx context.Context, req resource
 
 	plan.NewAgentID = types.StringValue(agent.AgentID)
 	plan.NewAgentNameGet = types.StringValue(agent.Name)
+	plan.CreatedAt = types.StringNull()
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }
@@ -114,6 +116,7 @@ func (r *ConvAIAgentDuplicatorResource) Read(ctx context.Context, req resource.R
 	}
 
 	state.NewAgentNameGet = types.StringValue(agent.Name)
+	state.CreatedAt = types.StringNull()
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &state)...)
 }
@@ -137,6 +140,7 @@ func (r *ConvAIAgentDuplicatorResource) Update(ctx context.Context, req resource
 	}
 
 	plan.NewAgentID = types.StringValue(agent.AgentID)
+	plan.CreatedAt = types.StringNull()
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)
 }

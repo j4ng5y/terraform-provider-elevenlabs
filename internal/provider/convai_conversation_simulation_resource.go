@@ -28,7 +28,7 @@ type ConvAIConversationSimulatorResourceModel struct {
 	AgentID       types.String            `tfsdk:"agent_id"`
 	ChatHistory   []ChatMessageModel      `tfsdk:"chat_history"`
 	AgentConfig   types.Map               `tfsdk:"agent_configuration"`
-	SimulatedChat []SimulatedMessageModel `tfsdk:"simulated_conversation"`
+	SimulatedChat types.List              `tfsdk:"simulated_conversation"`
 	Analysis      types.Object            `tfsdk:"analysis"`
 }
 
@@ -42,6 +42,12 @@ type SimulatedMessageModel struct {
 	Content   types.String `tfsdk:"content"`
 	Timestamp types.String `tfsdk:"timestamp"`
 }
+
+var simulatedMessageObjectType = types.ObjectType{AttrTypes: map[string]attr.Type{
+	"role":      types.StringType,
+	"content":   types.StringType,
+	"timestamp": types.StringType,
+}}
 
 type AnalysisModel struct {
 	GoalAchieved  types.Bool   `tfsdk:"goal_achieved"`
@@ -133,6 +139,8 @@ func (r *ConvAIConversationSimulatorResource) Create(ctx context.Context, req re
 		return
 	}
 
+	plan.SimulatedChat = types.ListNull(simulatedMessageObjectType)
+
 	// Convert chat history
 	chatHistory := make([]map[string]interface{}, len(plan.ChatHistory))
 	for i, msg := range plan.ChatHistory {
@@ -169,7 +177,9 @@ func (r *ConvAIConversationSimulatorResource) Create(ctx context.Context, req re
 				Timestamp: types.StringValue(m["timestamp"].(string)),
 			}
 		}
-		plan.SimulatedChat = simulatedMessages
+		listValue, diags := types.ListValueFrom(ctx, simulatedMessageObjectType, simulatedMessages)
+		resp.Diagnostics.Append(diags...)
+		plan.SimulatedChat = listValue
 	}
 
 	// Process analysis
@@ -203,6 +213,8 @@ func (r *ConvAIConversationSimulatorResource) Update(ctx context.Context, req re
 		return
 	}
 
+	plan.SimulatedChat = types.ListNull(simulatedMessageObjectType)
+
 	// Convert chat history
 	chatHistory := make([]map[string]interface{}, len(plan.ChatHistory))
 	for i, msg := range plan.ChatHistory {
@@ -239,7 +251,9 @@ func (r *ConvAIConversationSimulatorResource) Update(ctx context.Context, req re
 				Timestamp: types.StringValue(m["timestamp"].(string)),
 			}
 		}
-		plan.SimulatedChat = simulatedMessages
+		listValue, diags := types.ListValueFrom(ctx, simulatedMessageObjectType, simulatedMessages)
+		resp.Diagnostics.Append(diags...)
+		plan.SimulatedChat = listValue
 	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &plan)...)

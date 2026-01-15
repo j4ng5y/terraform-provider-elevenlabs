@@ -139,6 +139,17 @@ func (r *AudioNativeResource) Create(ctx context.Context, req resource.CreateReq
 	data.ID = types.StringValue(project.ProjectID)
 	data.HTMLSnippet = types.StringValue(project.HTMLSnippet)
 
+	settings, err := r.client.GetAudioNativeSettings(project.ProjectID)
+	if err != nil {
+		resp.Diagnostics.AddError("Error reading audio native settings", err.Error())
+		return
+	}
+	data.Title = types.StringValue(settings.Title)
+	data.Author = types.StringValue(settings.Author)
+	data.TextColor = types.StringValue(settings.TextColor)
+	data.BackgroundColor = types.StringValue(settings.BackgroundColor)
+	data.Status = types.StringValue(settings.Status)
+
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 

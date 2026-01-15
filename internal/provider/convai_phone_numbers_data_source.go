@@ -21,7 +21,7 @@ var (
 var convAIPhoneNumberAttrTypes = map[string]attr.Type{
 	"phone_number_id":      types.StringType,
 	"phone_number":         types.StringType,
-	"provider":             types.StringType,
+	"telephony_provider":   types.StringType,
 	"label":                types.StringType,
 	"supports_inbound":     types.BoolType,
 	"supports_outbound":    types.BoolType,
@@ -111,7 +111,7 @@ func flattenConvAIPhoneNumbers(ctx context.Context, numbers []models.ConvAIPhone
 		obj, objDiags := types.ObjectValue(convAIPhoneNumberAttrTypes, map[string]attr.Value{
 			"phone_number_id":      types.StringValue(number.PhoneNumberID),
 			"phone_number":         types.StringValue(number.PhoneNumber),
-			"provider":             types.StringValue(number.Provider),
+			"telephony_provider":   types.StringValue(number.Provider),
 			"label":                optionalStringValue(number.Label),
 			"supports_inbound":     types.BoolValue(number.SupportsInbound),
 			"supports_outbound":    types.BoolValue(number.SupportsOutbound),

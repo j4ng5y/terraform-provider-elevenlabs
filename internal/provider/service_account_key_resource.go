@@ -110,6 +110,14 @@ func (r *ServiceAccountKeyResource) Create(ctx context.Context, req resource.Cre
 		Name: data.Name.ValueString(),
 	}
 
+	resp.Diagnostics.Append(data.Permissions.ElementsAs(ctx, &addReq.Permissions, false)...)
+	if resp.Diagnostics.HasError() {
+		return
+	}
+	if !data.CharacterLimit.IsNull() {
+		addReq.CharacterLimit = int(data.CharacterLimit.ValueInt64())
+	}
+
 	key, err := r.client.CreateServiceAccountKey(data.UserID.ValueString(), addReq)
 	if err != nil {
 		resp.Diagnostics.AddError("Error creating service account key", err.Error())
@@ -117,6 +125,11 @@ func (r *ServiceAccountKeyResource) Create(ctx context.Context, req resource.Cre
 	}
 
 	data.ID = types.StringValue(key.KeyID)
+	if key.XiApiKey != "" {
+		data.XiApiKey = types.StringValue(key.XiApiKey)
+	} else {
+		data.XiApiKey = types.StringNull()
+	}
 
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }

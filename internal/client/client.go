@@ -23,11 +23,15 @@ type Client struct {
 	baseURL    string
 }
 
-func NewClient(apiKey string) *Client {
+func NewClient(apiKey string, customBaseURL string) *Client {
+	url := baseURL
+	if customBaseURL != "" {
+		url = customBaseURL
+	}
 	return &Client{
 		apiKey:     apiKey,
 		httpClient: &http.Client{},
-		baseURL:    baseURL,
+		baseURL:    url,
 	}
 }
 
@@ -57,7 +61,7 @@ func (c *Client) doRequest(req *http.Request, v interface{}) error {
 
 // Voices
 func (c *Client) GetVoices() ([]models.Voice, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/voices", nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/voices", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -70,7 +74,7 @@ func (c *Client) GetVoices() ([]models.Voice, error) {
 }
 
 func (c *Client) GetVoice(voiceID string) (*models.Voice, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/voices/"+voiceID, nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/voices/"+voiceID, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +119,7 @@ func (c *Client) AddVoice(addReq *models.AddVoiceRequest) (*models.Voice, error)
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/voices/add", body)
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/voices/add", body)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +171,7 @@ func (c *Client) EditVoice(voiceID string, addReq *models.AddVoiceRequest) error
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/voices/"+voiceID+"/edit", body)
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/voices/"+voiceID+"/edit", body)
 	if err != nil {
 		return err
 	}
@@ -177,7 +181,7 @@ func (c *Client) EditVoice(voiceID string, addReq *models.AddVoiceRequest) error
 }
 
 func (c *Client) DeleteVoice(voiceID string) error {
-	req, err := http.NewRequest(http.MethodDelete, baseURL+"/voices/"+voiceID, nil)
+	req, err := http.NewRequest(http.MethodDelete, c.baseURL+"/voices/"+voiceID, nil)
 	if err != nil {
 		return err
 	}
@@ -191,7 +195,7 @@ func (c *Client) EditVoiceSettings(voiceID string, settings *models.VoiceSetting
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/voices/"+voiceID+"/settings/edit", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/voices/"+voiceID+"/settings/edit", bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
@@ -201,7 +205,7 @@ func (c *Client) EditVoiceSettings(voiceID string, settings *models.VoiceSetting
 
 // Models
 func (c *Client) GetModels() ([]models.Model, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/models", nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/models", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -213,7 +217,7 @@ func (c *Client) GetModels() ([]models.Model, error) {
 
 // Projects
 func (c *Client) GetProjects() ([]models.Project, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/projects", nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/projects", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -226,7 +230,7 @@ func (c *Client) GetProjects() ([]models.Project, error) {
 }
 
 func (c *Client) GetProject(projectID string) (*models.Project, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/projects/"+projectID, nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/projects/"+projectID, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -242,7 +246,7 @@ func (c *Client) CreateProject(createReq *models.CreateProjectRequest) (*models.
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/projects", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/projects", bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
@@ -253,7 +257,7 @@ func (c *Client) CreateProject(createReq *models.CreateProjectRequest) (*models.
 }
 
 func (c *Client) DeleteProject(projectID string) error {
-	req, err := http.NewRequest(http.MethodDelete, baseURL+"/projects/"+projectID, nil)
+	req, err := http.NewRequest(http.MethodDelete, c.baseURL+"/projects/"+projectID, nil)
 	if err != nil {
 		return err
 	}
@@ -268,7 +272,7 @@ func (c *Client) AddPronunciationDictionaryFromRules(addReq *models.AddPronuncia
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/pronunciation-dictionaries/add-from-rules", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/pronunciation-dictionaries/add-from-rules", bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
@@ -307,7 +311,7 @@ func (c *Client) AddPronunciationDictionaryFromFile(addReq *models.AddPronunciat
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/pronunciation-dictionaries/add-from-file", body)
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/pronunciation-dictionaries/add-from-file", body)
 	if err != nil {
 		return nil, err
 	}
@@ -319,7 +323,7 @@ func (c *Client) AddPronunciationDictionaryFromFile(addReq *models.AddPronunciat
 }
 
 func (c *Client) GetPronunciationDictionaries() ([]models.PronunciationDictionary, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/pronunciation-dictionaries", nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/pronunciation-dictionaries", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -332,7 +336,7 @@ func (c *Client) GetPronunciationDictionaries() ([]models.PronunciationDictionar
 }
 
 func (c *Client) GetPronunciationDictionary(dictionaryID string) (*models.PronunciationDictionary, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/pronunciation-dictionaries/"+dictionaryID, nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/pronunciation-dictionaries/"+dictionaryID, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -346,7 +350,7 @@ func (c *Client) ArchivePronunciationDictionary(dictionaryID string) error {
 	body := map[string]bool{"archived": true}
 	jsonBody, _ := json.Marshal(body)
 
-	req, err := http.NewRequest(http.MethodPatch, baseURL+"/pronunciation-dictionaries/"+dictionaryID, bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequest(http.MethodPatch, c.baseURL+"/pronunciation-dictionaries/"+dictionaryID, bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return err
 	}
@@ -368,7 +372,7 @@ func (c *Client) UpdatePronunciationDictionary(dictionaryID string, name string,
 	}
 
 	jsonBody, _ := json.Marshal(body)
-	req, err := http.NewRequest(http.MethodPatch, baseURL+"/pronunciation-dictionaries/"+dictionaryID, bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequest(http.MethodPatch, c.baseURL+"/pronunciation-dictionaries/"+dictionaryID, bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return err
 	}
@@ -382,7 +386,7 @@ func (c *Client) AddPronunciationDictionaryRules(dictionaryID string, rules []mo
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/pronunciation-dictionaries/"+dictionaryID+"/add-rules", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/pronunciation-dictionaries/"+dictionaryID+"/add-rules", bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
@@ -396,7 +400,7 @@ func (c *Client) RemovePronunciationDictionaryRules(dictionaryID string, rules [
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/pronunciation-dictionaries/"+dictionaryID+"/remove-rules", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/pronunciation-dictionaries/"+dictionaryID+"/remove-rules", bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
@@ -405,7 +409,7 @@ func (c *Client) RemovePronunciationDictionaryRules(dictionaryID string, rules [
 }
 
 func (c *Client) DownloadPronunciationDictionary(dictionaryID string, versionID string) ([]byte, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/pronunciation-dictionaries/"+dictionaryID+"/"+versionID+"/download", nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/pronunciation-dictionaries/"+dictionaryID+"/"+versionID+"/download", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -465,7 +469,7 @@ func (c *Client) CreateAudioNative(addReq *models.CreateAudioNativeRequest) (*mo
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/audio-native", body)
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/audio-native", body)
 	if err != nil {
 		return nil, err
 	}
@@ -477,7 +481,7 @@ func (c *Client) CreateAudioNative(addReq *models.CreateAudioNativeRequest) (*mo
 }
 
 func (c *Client) GetAudioNativeSettings(projectID string) (*models.AudioNativeSettings, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/audio-native/"+projectID+"/settings", nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/audio-native/"+projectID+"/settings", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -520,7 +524,7 @@ func (c *Client) UpdateAudioNativeContent(projectID string, filePath string, voi
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/audio-native/"+projectID+"/content", body)
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/audio-native/"+projectID+"/content", body)
 	if err != nil {
 		return err
 	}
@@ -531,7 +535,7 @@ func (c *Client) UpdateAudioNativeContent(projectID string, filePath string, voi
 
 // Conversational AI Agents
 func (c *Client) GetConvAIAgents() ([]models.ConvAIAgent, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/agents", nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/convai/agents", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -544,7 +548,7 @@ func (c *Client) GetConvAIAgents() ([]models.ConvAIAgent, error) {
 }
 
 func (c *Client) GetConvAIAgentsFiltered(pageSize int, search string, archived, showOnlyOwned bool) ([]map[string]interface{}, error) {
-	url := baseURL + "/convai/agents?"
+	url := c.baseURL + "/convai/agents?"
 	if pageSize > 0 {
 		url += fmt.Sprintf("page_size=%d&", pageSize)
 	}
@@ -580,7 +584,7 @@ func (c *Client) CreateConvAIAgent(addReq *models.CreateConvAIAgentRequest) (*mo
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/convai/agents/create", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/convai/agents/create", bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
@@ -591,7 +595,7 @@ func (c *Client) CreateConvAIAgent(addReq *models.CreateConvAIAgentRequest) (*mo
 }
 
 func (c *Client) GetConvAIAgent(agentID string) (*models.ConvAIAgent, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/agents/"+agentID, nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/convai/agents/"+agentID, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -607,7 +611,7 @@ func (c *Client) UpdateConvAIAgent(agentID string, updateReq *models.CreateConvA
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPatch, baseURL+"/convai/agents/"+agentID, bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPatch, c.baseURL+"/convai/agents/"+agentID, bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
@@ -626,7 +630,7 @@ func (c *Client) DuplicateConvAIAgent(agentID string, name string) (*models.Conv
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/convai/agents/"+agentID+"/duplicate", bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/convai/agents/"+agentID+"/duplicate", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return nil, err
 	}
@@ -637,7 +641,7 @@ func (c *Client) DuplicateConvAIAgent(agentID string, name string) (*models.Conv
 }
 
 func (c *Client) DeleteConvAIAgent(agentID string) error {
-	req, err := http.NewRequest(http.MethodDelete, baseURL+"/convai/agents/"+agentID, nil)
+	req, err := http.NewRequest(http.MethodDelete, c.baseURL+"/convai/agents/"+agentID, nil)
 	if err != nil {
 		return err
 	}
@@ -657,7 +661,7 @@ func (c *Client) CalculateLLMUsage(agentID string, promptLength int, numberOfPag
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/convai/agent/"+agentID+"/llm-usage/calculate", bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/convai/agent/"+agentID+"/llm-usage/calculate", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return nil, err
 	}
@@ -680,7 +684,7 @@ func (c *Client) RunConvAIAgentTests(agentID string, testIDs []string, agentConf
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/convai/agents/"+agentID+"/run-tests", bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/convai/agents/"+agentID+"/run-tests", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return nil, err
 	}
@@ -703,7 +707,7 @@ func (c *Client) SimulateConversation(agentID string, chatHistory []map[string]i
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/convai/agents/"+agentID+"/simulate-conversation", bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/convai/agents/"+agentID+"/simulate-conversation", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return nil, err
 	}
@@ -748,7 +752,7 @@ func (c *Client) CreateConvAIKnowledgeBase(addReq *models.CreateConvAIKnowledgeB
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/convai/knowledge-base", body)
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/convai/knowledge-base", body)
 	if err != nil {
 		return nil, err
 	}
@@ -760,7 +764,7 @@ func (c *Client) CreateConvAIKnowledgeBase(addReq *models.CreateConvAIKnowledgeB
 }
 
 func (c *Client) GetConvAIKnowledgeBase(documentationID string) (*models.ConvAIKnowledgeBase, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/knowledge-base/"+documentationID, nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/convai/knowledge-base/"+documentationID, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -771,7 +775,7 @@ func (c *Client) GetConvAIKnowledgeBase(documentationID string) (*models.ConvAIK
 }
 
 func (c *Client) DeleteConvAIKnowledgeBase(documentationID string) error {
-	req, err := http.NewRequest(http.MethodDelete, baseURL+"/convai/knowledge-base/"+documentationID, nil)
+	req, err := http.NewRequest(http.MethodDelete, c.baseURL+"/convai/knowledge-base/"+documentationID, nil)
 	if err != nil {
 		return err
 	}
@@ -780,7 +784,7 @@ func (c *Client) DeleteConvAIKnowledgeBase(documentationID string) error {
 }
 
 func (c *Client) ListConvAIKnowledgeBaseDocuments(params *models.ListConvAIKnowledgeBaseDocumentsParams) (*models.ConvAIKnowledgeBaseListResponse, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/knowledge-base", nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/convai/knowledge-base", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -819,7 +823,7 @@ func (c *Client) CreateConvAITool(addReq *models.CreateConvAIToolRequest) (*mode
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/convai/tools", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/convai/tools", bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
@@ -830,7 +834,7 @@ func (c *Client) CreateConvAITool(addReq *models.CreateConvAIToolRequest) (*mode
 }
 
 func (c *Client) GetConvAITool(toolID string) (*models.ConvAITool, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/tools/"+toolID, nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/convai/tools/"+toolID, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -846,7 +850,7 @@ func (c *Client) UpdateConvAITool(toolID string, updateReq *models.CreateConvAIT
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPatch, baseURL+"/convai/tools/"+toolID, bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPatch, c.baseURL+"/convai/tools/"+toolID, bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
@@ -855,7 +859,7 @@ func (c *Client) UpdateConvAITool(toolID string, updateReq *models.CreateConvAIT
 }
 
 func (c *Client) DeleteConvAITool(toolID string) error {
-	req, err := http.NewRequest(http.MethodDelete, baseURL+"/convai/tools/"+toolID, nil)
+	req, err := http.NewRequest(http.MethodDelete, c.baseURL+"/convai/tools/"+toolID, nil)
 	if err != nil {
 		return err
 	}
@@ -864,7 +868,7 @@ func (c *Client) DeleteConvAITool(toolID string) error {
 }
 
 func (c *Client) GetConvAITools() ([]models.ConvAITool, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/tools", nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/convai/tools", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -881,7 +885,7 @@ func (c *Client) CreateConvAISecret(addReq *models.CreateConvAISecretRequest) (*
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/convai/secrets", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/convai/secrets", bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
@@ -892,7 +896,7 @@ func (c *Client) CreateConvAISecret(addReq *models.CreateConvAISecretRequest) (*
 }
 
 func (c *Client) GetConvAISecret(secretID string) (*models.ConvAISecret, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/secrets/"+secretID, nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/convai/secrets/"+secretID, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -908,7 +912,7 @@ func (c *Client) UpdateConvAISecret(secretID string, updateReq *models.CreateCon
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPatch, baseURL+"/convai/secrets/"+secretID, bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPatch, c.baseURL+"/convai/secrets/"+secretID, bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
@@ -917,7 +921,7 @@ func (c *Client) UpdateConvAISecret(secretID string, updateReq *models.CreateCon
 }
 
 func (c *Client) DeleteConvAISecret(secretID string) error {
-	req, err := http.NewRequest(http.MethodDelete, baseURL+"/convai/secrets/"+secretID, nil)
+	req, err := http.NewRequest(http.MethodDelete, c.baseURL+"/convai/secrets/"+secretID, nil)
 	if err != nil {
 		return err
 	}
@@ -932,7 +936,7 @@ func (c *Client) CreateConvAIAgentTest(addReq *models.CreateConvAIAgentTestReque
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/convai/agent-testing/create", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/convai/agent-testing/create", bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
@@ -943,7 +947,7 @@ func (c *Client) CreateConvAIAgentTest(addReq *models.CreateConvAIAgentTestReque
 }
 
 func (c *Client) GetConvAIAgentTest(testID string) (*models.ConvAIAgentTest, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/agent-testing/"+testID, nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/convai/agent-testing/"+testID, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -954,7 +958,7 @@ func (c *Client) GetConvAIAgentTest(testID string) (*models.ConvAIAgentTest, err
 }
 
 func (c *Client) DeleteConvAIAgentTest(testID string) error {
-	req, err := http.NewRequest(http.MethodDelete, baseURL+"/convai/agent-testing/"+testID, nil)
+	req, err := http.NewRequest(http.MethodDelete, c.baseURL+"/convai/agent-testing/"+testID, nil)
 	if err != nil {
 		return err
 	}
@@ -964,7 +968,7 @@ func (c *Client) DeleteConvAIAgentTest(testID string) error {
 
 // Conversational AI MCP Servers
 func (c *Client) GetConvAIMCPServers() ([]models.ConvAIMCPServer, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/mcp-servers", nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/convai/mcp-servers", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -980,7 +984,7 @@ func (c *Client) CreateConvAIMCPServer(addReq *models.CreateConvAIMCPServerReque
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/convai/mcp-servers", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/convai/mcp-servers", bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
@@ -996,7 +1000,7 @@ func (c *Client) UpdateConvAIMCPServer(mcpServerID string, updateReq *models.Cre
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPatch, baseURL+"/convai/mcp-servers/"+mcpServerID, bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPatch, c.baseURL+"/convai/mcp-servers/"+mcpServerID, bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
@@ -1005,7 +1009,7 @@ func (c *Client) UpdateConvAIMCPServer(mcpServerID string, updateReq *models.Cre
 }
 
 func (c *Client) DeleteConvAIMCPServer(mcpServerID string) error {
-	req, err := http.NewRequest(http.MethodDelete, baseURL+"/convai/mcp-servers/"+mcpServerID, nil)
+	req, err := http.NewRequest(http.MethodDelete, c.baseURL+"/convai/mcp-servers/"+mcpServerID, nil)
 	if err != nil {
 		return err
 	}
@@ -1015,7 +1019,7 @@ func (c *Client) DeleteConvAIMCPServer(mcpServerID string) error {
 
 // Conversational AI Phone Numbers
 func (c *Client) GetConvAIPhoneNumbers() ([]models.ConvAIPhoneNumber, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/phone-numbers", nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/convai/phone-numbers", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1031,7 +1035,7 @@ func (c *Client) ImportConvAIPhoneNumber(addReq *models.ImportPhoneNumberRequest
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/convai/phone-numbers", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/convai/phone-numbers", bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
@@ -1047,7 +1051,7 @@ func (c *Client) UpdateConvAIPhoneNumber(phoneNumberID string, updateReq *models
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPatch, baseURL+"/convai/phone-numbers/"+phoneNumberID, bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPatch, c.baseURL+"/convai/phone-numbers/"+phoneNumberID, bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
@@ -1056,7 +1060,7 @@ func (c *Client) UpdateConvAIPhoneNumber(phoneNumberID string, updateReq *models
 }
 
 func (c *Client) DeleteConvAIPhoneNumber(phoneNumberID string) error {
-	req, err := http.NewRequest(http.MethodDelete, baseURL+"/convai/phone-numbers/"+phoneNumberID, nil)
+	req, err := http.NewRequest(http.MethodDelete, c.baseURL+"/convai/phone-numbers/"+phoneNumberID, nil)
 	if err != nil {
 		return err
 	}
@@ -1066,7 +1070,7 @@ func (c *Client) DeleteConvAIPhoneNumber(phoneNumberID string) error {
 
 // Conversational AI WhatsApp Accounts
 func (c *Client) ListConvAIWhatsAppAccounts() ([]models.ConvAIWhatsAppAccount, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/whatsapp-accounts", nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/convai/whatsapp-accounts", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1082,7 +1086,7 @@ func (c *Client) ImportConvAIWhatsAppAccount(addReq *models.ImportWhatsAppAccoun
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/convai/whatsapp-accounts", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/convai/whatsapp-accounts", bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
@@ -1093,7 +1097,7 @@ func (c *Client) ImportConvAIWhatsAppAccount(addReq *models.ImportWhatsAppAccoun
 }
 
 func (c *Client) GetConvAIWhatsAppAccount(phoneNumberID string) (*models.ConvAIWhatsAppAccount, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/whatsapp-accounts/"+phoneNumberID, nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/convai/whatsapp-accounts/"+phoneNumberID, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1109,7 +1113,7 @@ func (c *Client) UpdateConvAIWhatsAppAccount(phoneNumberID string, updateReq *mo
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPatch, baseURL+"/convai/whatsapp-accounts/"+phoneNumberID, bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPatch, c.baseURL+"/convai/whatsapp-accounts/"+phoneNumberID, bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
@@ -1120,7 +1124,7 @@ func (c *Client) UpdateConvAIWhatsAppAccount(phoneNumberID string, updateReq *mo
 }
 
 func (c *Client) DeleteConvAIWhatsAppAccount(phoneNumberID string) error {
-	req, err := http.NewRequest(http.MethodDelete, baseURL+"/convai/whatsapp-accounts/"+phoneNumberID, nil)
+	req, err := http.NewRequest(http.MethodDelete, c.baseURL+"/convai/whatsapp-accounts/"+phoneNumberID, nil)
 	if err != nil {
 		return err
 	}
@@ -1130,7 +1134,7 @@ func (c *Client) DeleteConvAIWhatsAppAccount(phoneNumberID string) error {
 
 // Conversational AI Settings
 func (c *Client) GetConvAISettings() (map[string]interface{}, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/settings", nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/convai/settings", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1146,7 +1150,7 @@ func (c *Client) UpdateConvAISettings(settings map[string]interface{}) error {
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPatch, baseURL+"/convai/settings", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPatch, c.baseURL+"/convai/settings", bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
@@ -1155,7 +1159,7 @@ func (c *Client) UpdateConvAISettings(settings map[string]interface{}) error {
 }
 
 func (c *Client) GetConvAISecrets() ([]models.ConvAISecret, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/secrets", nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/convai/secrets", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1166,7 +1170,7 @@ func (c *Client) GetConvAISecrets() ([]models.ConvAISecret, error) {
 }
 
 func (c *Client) GetConvAIConversation(conversationID string) (*map[string]interface{}, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/conversations/"+conversationID, nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/convai/conversations/"+conversationID, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1177,7 +1181,7 @@ func (c *Client) GetConvAIConversation(conversationID string) (*map[string]inter
 }
 
 func (c *Client) DeleteConvAIConversation(conversationID string) error {
-	req, err := http.NewRequest(http.MethodDelete, baseURL+"/convai/conversations/"+conversationID, nil)
+	req, err := http.NewRequest(http.MethodDelete, c.baseURL+"/convai/conversations/"+conversationID, nil)
 	if err != nil {
 		return err
 	}
@@ -1187,7 +1191,7 @@ func (c *Client) DeleteConvAIConversation(conversationID string) error {
 
 // Conversational AI Conversations
 func (c *Client) GetConvAIConversations() ([]map[string]interface{}, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/conversations", nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/convai/conversations", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1198,7 +1202,7 @@ func (c *Client) GetConvAIConversations() ([]map[string]interface{}, error) {
 }
 
 func (c *Client) GetConvAISignedUrl(agentID string, includeConversationID bool) (string, string, error) {
-	url := baseURL + "/convai/conversation/get-signed-url?agent_id=" + agentID
+	url := c.baseURL + "/convai/conversation/get-signed-url?agent_id=" + agentID
 	if includeConversationID {
 		url += "&include_conversation_id=true"
 	}
@@ -1232,7 +1236,7 @@ type DubbingMetadata struct {
 }
 
 func (c *Client) GetDubs() (*DubbingListResponse, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/dubbing", nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/dubbing", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1243,7 +1247,7 @@ func (c *Client) GetDubs() (*DubbingListResponse, error) {
 }
 
 func (c *Client) GetDubbing(dubbingID string) (*DubbingMetadata, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/dubbing/"+dubbingID, nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/dubbing/"+dubbingID, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1254,7 +1258,7 @@ func (c *Client) GetDubbing(dubbingID string) (*DubbingMetadata, error) {
 }
 
 func (c *Client) DeleteDubbing(dubbingID string) error {
-	req, err := http.NewRequest(http.MethodDelete, baseURL+"/dubbing/"+dubbingID, nil)
+	req, err := http.NewRequest(http.MethodDelete, c.baseURL+"/dubbing/"+dubbingID, nil)
 	if err != nil {
 		return err
 	}
@@ -1264,7 +1268,7 @@ func (c *Client) DeleteDubbing(dubbingID string) error {
 
 // Conversational AI Dashboard Settings
 func (c *Client) GetConvAIDashboardSettings() (map[string]interface{}, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/dashboard/settings", nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/convai/dashboard/settings", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1276,7 +1280,7 @@ func (c *Client) GetConvAIDashboardSettings() (map[string]interface{}, error) {
 
 // Conversational AI Batch Calling
 func (c *Client) GetConvAIBatchCalls() ([]map[string]interface{}, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/batch-calling/workspace", nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/convai/batch-calling/workspace", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1287,7 +1291,7 @@ func (c *Client) GetConvAIBatchCalls() ([]map[string]interface{}, error) {
 }
 
 func (c *Client) GetConvAIBatchCall(batchID string) (*map[string]interface{}, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/convai/batch-calling/"+batchID, nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/convai/batch-calling/"+batchID, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1298,7 +1302,7 @@ func (c *Client) GetConvAIBatchCall(batchID string) (*map[string]interface{}, er
 }
 
 func (c *Client) CancelConvAIBatchCall(batchID string) error {
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/convai/batch-calling/"+batchID+"/cancel", nil)
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/convai/batch-calling/"+batchID+"/cancel", nil)
 	if err != nil {
 		return err
 	}
@@ -1308,7 +1312,7 @@ func (c *Client) CancelConvAIBatchCall(batchID string) error {
 
 // Workspace Webhooks
 func (c *Client) ListWorkspaceWebhooks() ([]models.WorkspaceWebhook, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/workspace/webhooks", nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/workspace/webhooks", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1324,7 +1328,7 @@ func (c *Client) CreateWorkspaceWebhook(addReq *models.CreateWorkspaceWebhookReq
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/workspace/webhooks", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/workspace/webhooks", bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
@@ -1335,7 +1339,7 @@ func (c *Client) CreateWorkspaceWebhook(addReq *models.CreateWorkspaceWebhookReq
 }
 
 func (c *Client) GetWorkspaceWebhook(webhookID string) (*models.WorkspaceWebhook, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/workspace/webhooks/"+webhookID, nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/workspace/webhooks/"+webhookID, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1351,7 +1355,7 @@ func (c *Client) UpdateWorkspaceWebhook(webhookID string, updateReq *models.Crea
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPatch, baseURL+"/workspace/webhooks/"+webhookID, bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPatch, c.baseURL+"/workspace/webhooks/"+webhookID, bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
@@ -1360,7 +1364,7 @@ func (c *Client) UpdateWorkspaceWebhook(webhookID string, updateReq *models.Crea
 }
 
 func (c *Client) DeleteWorkspaceWebhook(webhookID string) error {
-	req, err := http.NewRequest(http.MethodDelete, baseURL+"/workspace/webhooks/"+webhookID, nil)
+	req, err := http.NewRequest(http.MethodDelete, c.baseURL+"/workspace/webhooks/"+webhookID, nil)
 	if err != nil {
 		return err
 	}
@@ -1370,7 +1374,7 @@ func (c *Client) DeleteWorkspaceWebhook(webhookID string) error {
 
 // Workspace Members
 func (c *Client) GetWorkspaceMembers() ([]models.WorkspaceMember, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/workspace/members", nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/workspace/members", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1386,7 +1390,7 @@ func (c *Client) UpdateWorkspaceMember(userID string, updateReq *models.UpdateWo
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/workspace/members/"+userID, bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/workspace/members/"+userID, bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
@@ -1396,7 +1400,7 @@ func (c *Client) UpdateWorkspaceMember(userID string, updateReq *models.UpdateWo
 
 // Workspace Invites
 func (c *Client) GetWorkspaceInvites() ([]models.WorkspaceInvite, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/workspace/invites", nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/workspace/invites", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1412,7 +1416,7 @@ func (c *Client) CreateWorkspaceInvite(addReq *models.CreateWorkspaceInviteReque
 		return err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/workspace/invites/add", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/workspace/invites/add", bytes.NewBuffer(body))
 	if err != nil {
 		return err
 	}
@@ -1424,7 +1428,7 @@ func (c *Client) DeleteWorkspaceInvite(email string) error {
 	body := map[string]string{"email": email}
 	jsonBody, _ := json.Marshal(body)
 
-	req, err := http.NewRequest(http.MethodDelete, baseURL+"/workspace/invites", bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequest(http.MethodDelete, c.baseURL+"/workspace/invites", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return err
 	}
@@ -1434,7 +1438,7 @@ func (c *Client) DeleteWorkspaceInvite(email string) error {
 
 // Workspace Groups
 func (c *Client) SearchWorkspaceGroups(query string) ([]models.WorkspaceGroup, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/workspace/groups/search?search="+query, nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/workspace/groups/search?search="+query, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1448,7 +1452,7 @@ func (c *Client) AddWorkspaceGroupMember(groupID, email string) error {
 	body := map[string]string{"email": email}
 	jsonBody, _ := json.Marshal(body)
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/workspace/groups/"+groupID+"/members", bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/workspace/groups/"+groupID+"/members", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return err
 	}
@@ -1460,7 +1464,7 @@ func (c *Client) RemoveWorkspaceGroupMember(groupID, email string) error {
 	body := map[string]string{"email": email}
 	jsonBody, _ := json.Marshal(body)
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/workspace/groups/"+groupID+"/members/remove", bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/workspace/groups/"+groupID+"/members/remove", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return err
 	}
@@ -1470,7 +1474,7 @@ func (c *Client) RemoveWorkspaceGroupMember(groupID, email string) error {
 
 // Service Accounts
 func (c *Client) GetWorkspaceServiceAccounts() ([]models.WorkspaceServiceAccount, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/service-accounts", nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/service-accounts", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1481,7 +1485,7 @@ func (c *Client) GetWorkspaceServiceAccounts() ([]models.WorkspaceServiceAccount
 }
 
 func (c *Client) GetServiceAccountAPIKeys(userID string) ([]models.ServiceAccountKey, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/service-accounts/"+userID+"/api-keys", nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/service-accounts/"+userID+"/api-keys", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1497,7 +1501,7 @@ func (c *Client) CreateServiceAccountKey(userID string, addReq *models.CreateSer
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/service-accounts/"+userID+"/api-keys", bytes.NewBuffer(body))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/service-accounts/"+userID+"/api-keys", bytes.NewBuffer(body))
 	if err != nil {
 		return nil, err
 	}
@@ -1508,7 +1512,7 @@ func (c *Client) CreateServiceAccountKey(userID string, addReq *models.CreateSer
 }
 
 func (c *Client) DeleteServiceAccountKey(userID, keyID string) error {
-	req, err := http.NewRequest(http.MethodDelete, baseURL+"/service-accounts/"+userID+"/api-keys/"+keyID, nil)
+	req, err := http.NewRequest(http.MethodDelete, c.baseURL+"/service-accounts/"+userID+"/api-keys/"+keyID, nil)
 	if err != nil {
 		return err
 	}
@@ -1518,7 +1522,7 @@ func (c *Client) DeleteServiceAccountKey(userID, keyID string) error {
 
 // Workspace Resources
 func (c *Client) GetWorkspaceResources() ([]models.WorkspaceResource, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/workspace/resources", nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/workspace/resources", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1529,7 +1533,7 @@ func (c *Client) GetWorkspaceResources() ([]models.WorkspaceResource, error) {
 }
 
 func (c *Client) GetWorkspaceResource(resourceID string) (*models.WorkspaceResource, error) {
-	req, err := http.NewRequest(http.MethodGet, baseURL+"/workspace/resources/"+resourceID, nil)
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/workspace/resources/"+resourceID, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -1547,7 +1551,7 @@ func (c *Client) ShareResource(resourceID, resourceType, email, role string) err
 	}
 	jsonBody, _ := json.Marshal(body)
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/workspace/resources/"+resourceID+"/share", bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/workspace/resources/"+resourceID+"/share", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return err
 	}
@@ -1562,7 +1566,7 @@ func (c *Client) UnshareResource(resourceID, resourceType, email string) error {
 	}
 	jsonBody, _ := json.Marshal(body)
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/workspace/resources/"+resourceID+"/unshare", bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/workspace/resources/"+resourceID+"/unshare", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return err
 	}
@@ -1577,7 +1581,7 @@ func (c *Client) CopyResourceToWorkspace(resourceID, resourceType, targetWorkspa
 	}
 	jsonBody, _ := json.Marshal(body)
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/workspace/resources/"+resourceID+"/copy-to-workspace", bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/workspace/resources/"+resourceID+"/copy-to-workspace", bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return err
 	}
@@ -1590,7 +1594,7 @@ func (c *Client) AddSharedVoice(publicUserID, voiceID, newName string) (string, 
 	body := map[string]string{"new_name": newName}
 	jsonBody, _ := json.Marshal(body)
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/voices/add/"+publicUserID+"/"+voiceID, bytes.NewBuffer(jsonBody))
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/voices/add/"+publicUserID+"/"+voiceID, bytes.NewBuffer(jsonBody))
 	if err != nil {
 		return "", err
 	}
@@ -1627,7 +1631,7 @@ func (c *Client) AddVoiceSample(voiceID string, addReq *models.AddVoiceSampleReq
 		return nil, err
 	}
 
-	req, err := http.NewRequest(http.MethodPost, baseURL+"/voices/pvc/"+voiceID+"/samples", body)
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/voices/pvc/"+voiceID+"/samples", body)
 	if err != nil {
 		return nil, err
 	}
@@ -1639,7 +1643,7 @@ func (c *Client) AddVoiceSample(voiceID string, addReq *models.AddVoiceSampleReq
 }
 
 func (c *Client) DeleteVoiceSample(voiceID, sampleID string) error {
-	req, err := http.NewRequest(http.MethodDelete, baseURL+"/voices/"+voiceID+"/samples/"+sampleID, nil)
+	req, err := http.NewRequest(http.MethodDelete, c.baseURL+"/voices/"+voiceID+"/samples/"+sampleID, nil)
 	if err != nil {
 		return err
 	}

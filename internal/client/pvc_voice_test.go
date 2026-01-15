@@ -20,11 +20,7 @@ func TestClient_CreatePVCVoice(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := &Client{
-		apiKey:     "test-key",
-		httpClient: server.Client(),
-		baseURL:    server.URL,
-	}
+	client := NewClient("test-key", server.URL)
 
 	req := &models.CreatePVCVoiceRequest{
 		Name:     "Test Voice",
@@ -60,11 +56,7 @@ func TestClient_GetPVCVoice(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := &Client{
-		apiKey:     "test-key",
-		httpClient: server.Client(),
-		baseURL:    server.URL,
-	}
+	client := NewClient("test-key", server.URL)
 
 	voice, err := client.GetPVCVoice("test-voice-id")
 	if err != nil {
@@ -104,11 +96,7 @@ func TestClient_ListPVCVoices(t *testing.T) {
 	}))
 	defer server.Close()
 
-	client := &Client{
-		apiKey:     "test-key",
-		httpClient: server.Client(),
-		baseURL:    server.URL,
-	}
+	client := NewClient("test-key", server.URL)
 
 	response, err := client.ListPVCVoices()
 	if err != nil {

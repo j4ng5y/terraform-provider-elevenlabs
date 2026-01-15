@@ -95,6 +95,7 @@ func (r *WorkspaceMemberResource) Create(ctx context.Context, req resource.Creat
 		return
 	}
 
+	data.Email = types.StringNull()
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 
@@ -119,6 +120,7 @@ func (r *WorkspaceMemberResource) Update(ctx context.Context, req resource.Updat
 		return
 	}
 
+	data.Email = types.StringNull()
 	resp.Diagnostics.Append(resp.State.Set(ctx, &data)...)
 }
 

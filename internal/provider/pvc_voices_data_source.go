@@ -48,6 +48,21 @@ type PVCVoiceSampleDataSourceModel struct {
 	Channels      types.Int64   `tfsdk:"channels"`
 }
 
+var pvcVoiceSampleAttrTypes = map[string]attr.Type{
+	"sample_id":     types.StringType,
+	"file_name":     types.StringType,
+	"mime_type":     types.StringType,
+	"size_bytes":    types.Int64Type,
+	"hash":          types.StringType,
+	"state":         types.StringType,
+	"transcription": types.StringType,
+	"duration":      types.Float64Type,
+	"sample_rate":   types.Int64Type,
+	"channels":      types.Int64Type,
+}
+
+var pvcVoiceSampleObjectType = types.ObjectType{AttrTypes: pvcVoiceSampleAttrTypes}
+
 func NewPVCVoicesDataSource() datasource.DataSource {
 	return &PVCVoicesDataSource{}
 }
@@ -221,6 +236,8 @@ func (d *PVCVoicesDataSource) Read(ctx context.Context, req datasource.ReadReque
 			Verification: types.StringValue(voice.Verification),
 			CreatedAt:    types.StringValue(voice.CreatedAt),
 			UpdatedAt:    types.StringValue(voice.UpdatedAt),
+			Labels:       types.MapNull(types.StringType),
+			Samples:      types.ListNull(pvcVoiceSampleObjectType),
 		}
 
 		if voice.Labels != nil {
@@ -250,20 +267,7 @@ func (d *PVCVoicesDataSource) Read(ctx context.Context, req datasource.ReadReque
 				samples = append(samples, sampleModel)
 			}
 
-			samplesList, diags := types.ListValueFrom(ctx, types.ObjectType{
-				AttrTypes: map[string]attr.Type{
-					"sample_id":     types.StringType,
-					"file_name":     types.StringType,
-					"mime_type":     types.StringType,
-					"size_bytes":    types.Int64Type,
-					"hash":          types.StringType,
-					"state":         types.StringType,
-					"transcription": types.StringType,
-					"duration":      types.Float64Type,
-					"sample_rate":   types.Int64Type,
-					"channels":      types.Int64Type,
-				},
-			}, samples)
+			samplesList, diags := types.ListValueFrom(ctx, pvcVoiceSampleObjectType, samples)
 			resp.Diagnostics.Append(diags...)
 			if resp.Diagnostics.HasError() {
 				return

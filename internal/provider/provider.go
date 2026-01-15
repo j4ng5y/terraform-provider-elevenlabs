@@ -19,7 +19,8 @@ type ElevenLabsProvider struct {
 
 // ElevenLabsProviderModel describes the provider data model.
 type ElevenLabsProviderModel struct {
-	ApiKey types.String `tfsdk:"api_key"`
+	ApiKey  types.String `tfsdk:"api_key"`
+	BaseURL types.String `tfsdk:"base_url"`
 }
 
 func (p *ElevenLabsProvider) Metadata(ctx context.Context, req provider.MetadataRequest, resp *provider.MetadataResponse) {
@@ -34,6 +35,10 @@ func (p *ElevenLabsProvider) Schema(ctx context.Context, req provider.SchemaRequ
 				MarkdownDescription: "ElevenLabs API Key. May also be provided via ELEVENLABS_API_KEY environment variable.",
 				Optional:            true,
 				Sensitive:           true,
+			},
+			"base_url": schema.StringAttribute{
+				MarkdownDescription: "ElevenLabs API Base URL. Used for testing.",
+				Optional:            true,
 			},
 		},
 	}
@@ -66,7 +71,12 @@ func (p *ElevenLabsProvider) Configure(ctx context.Context, req provider.Configu
 		return
 	}
 
-	c := client.NewClient(apiKey)
+	baseURL := ""
+	if !data.BaseURL.IsNull() {
+		baseURL = data.BaseURL.ValueString()
+	}
+
+	c := client.NewClient(apiKey, baseURL)
 
 	resp.DataSourceData = c
 	resp.ResourceData = c
@@ -116,6 +126,7 @@ func (p *ElevenLabsProvider) DataSources(ctx context.Context) []func() datasourc
 		NewPronunciationDictionaryDownloadDataSource,
 		NewConvAIAgentsDataSource,
 		NewConvAIAgentsFilteredDataSource,
+		NewConvAILLMUsageCalculatorDataSource,
 		NewConvAIKnowledgeBasesDataSource,
 		NewConvAIToolsDataSource,
 		NewConvAIWhatsAppAccountsDataSource,
