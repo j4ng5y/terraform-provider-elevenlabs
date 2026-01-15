@@ -111,18 +111,7 @@ resource "elevenlabs_project" "quarterly_update" {
 
 ## Documentation
 
-Full documentation for resources and data sources can be found on the [Terraform Registry](https://registry.terraform.io/providers/j4ng5y/elevenlabs/latest/docs).
-
-### Resources
-- [elevenlabs_voice](./docs/resources/voice.md)
-- [elevenlabs_pvc_voice](./docs/resources/pvc_voice.md)
-- [elevenlabs_pvc_voice_sample](./docs/resources/pvc_voice_sample.md)
-- [elevenlabs_project](./docs/resources/project.md)
-
-### Data Sources
-- [elevenlabs_models](./docs/data-sources/models.md)
-- [elevenlabs_pvc_voices](./docs/data-sources/pvc_voices.md)
-- [elevenlabs_pvc_voice_samples](./docs/data-sources/pvc_voice_samples.md)
+Full documentation for all resources and data sources is available in [docs/index.md](./docs/index.md) and on the [Terraform Registry](https://registry.terraform.io/providers/j4ng5y/elevenlabs/latest/docs).
 
 ## Development
 
