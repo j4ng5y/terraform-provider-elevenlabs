@@ -816,6 +816,42 @@ func (c *Client) ListConvAIKnowledgeBaseDocuments(params *models.ListConvAIKnowl
 	return &list, err
 }
 
+func (c *Client) CreateConvAIKnowledgeBaseRAGIndex(documentationID string, reqModel *models.RAGIndexRequest) (*models.RAGDocumentIndexResponse, error) {
+	body, err := json.Marshal(reqModel)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/convai/knowledge-base/"+documentationID+"/rag-index", bytes.NewBuffer(body))
+	if err != nil {
+		return nil, err
+	}
+
+	var response models.RAGDocumentIndexResponse
+	err = c.doRequest(req, &response)
+	return &response, err
+}
+
+func (c *Client) GetConvAIKnowledgeBaseRAGIndexes(documentationID string) (*models.RAGDocumentIndexesResponse, error) {
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/convai/knowledge-base/"+documentationID+"/rag-index", nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var response models.RAGDocumentIndexesResponse
+	err = c.doRequest(req, &response)
+	return &response, err
+}
+
+func (c *Client) DeleteConvAIKnowledgeBaseRAGIndex(documentationID, ragIndexID string) error {
+	req, err := http.NewRequest(http.MethodDelete, c.baseURL+"/convai/knowledge-base/"+documentationID+"/rag-index/"+ragIndexID, nil)
+	if err != nil {
+		return err
+	}
+
+	return c.doRequest(req, nil)
+}
+
 // Conversational AI Tools
 func (c *Client) CreateConvAITool(addReq *models.CreateConvAIToolRequest) (*models.ConvAITool, error) {
 	body, err := json.Marshal(addReq)
@@ -1010,6 +1046,77 @@ func (c *Client) UpdateConvAIMCPServer(mcpServerID string, updateReq *models.Cre
 
 func (c *Client) DeleteConvAIMCPServer(mcpServerID string) error {
 	req, err := http.NewRequest(http.MethodDelete, c.baseURL+"/convai/mcp-servers/"+mcpServerID, nil)
+	if err != nil {
+		return err
+	}
+
+	return c.doRequest(req, nil)
+}
+
+func (c *Client) CreateConvAIMCPToolApproval(mcpServerID string, addReq *models.MCPToolAddApprovalRequest) error {
+	body, err := json.Marshal(addReq)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/convai/mcp-servers/"+mcpServerID+"/tool-approvals", bytes.NewBuffer(body))
+	if err != nil {
+		return err
+	}
+
+	return c.doRequest(req, nil)
+}
+
+func (c *Client) DeleteConvAIMCPToolApproval(mcpServerID, toolName string) error {
+	req, err := http.NewRequest(http.MethodDelete, c.baseURL+"/convai/mcp-servers/"+mcpServerID+"/tool-approvals/"+toolName, nil)
+	if err != nil {
+		return err
+	}
+
+	return c.doRequest(req, nil)
+}
+
+func (c *Client) CreateConvAIMCPToolConfigOverride(mcpServerID string, addReq *models.MCPToolConfigOverrideCreateRequest) error {
+	body, err := json.Marshal(addReq)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(http.MethodPost, c.baseURL+"/convai/mcp-servers/"+mcpServerID+"/tool-configs", bytes.NewBuffer(body))
+	if err != nil {
+		return err
+	}
+
+	return c.doRequest(req, nil)
+}
+
+func (c *Client) GetConvAIMCPToolConfigOverride(mcpServerID, toolName string) (*models.MCPToolConfigOverride, error) {
+	req, err := http.NewRequest(http.MethodGet, c.baseURL+"/convai/mcp-servers/"+mcpServerID+"/tool-configs/"+toolName, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var config models.MCPToolConfigOverride
+	err = c.doRequest(req, &config)
+	return &config, err
+}
+
+func (c *Client) UpdateConvAIMCPToolConfigOverride(mcpServerID, toolName string, updateReq *models.MCPToolConfigOverrideUpdateRequest) error {
+	body, err := json.Marshal(updateReq)
+	if err != nil {
+		return err
+	}
+
+	req, err := http.NewRequest(http.MethodPatch, c.baseURL+"/convai/mcp-servers/"+mcpServerID+"/tool-configs/"+toolName, bytes.NewBuffer(body))
+	if err != nil {
+		return err
+	}
+
+	return c.doRequest(req, nil)
+}
+
+func (c *Client) DeleteConvAIMCPToolConfigOverride(mcpServerID, toolName string) error {
+	req, err := http.NewRequest(http.MethodDelete, c.baseURL+"/convai/mcp-servers/"+mcpServerID+"/tool-configs/"+toolName, nil)
 	if err != nil {
 		return err
 	}

@@ -31,6 +31,20 @@ func TestAccConvAIResourcesAndDataSources(t *testing.T) {
 		},
 		{
 			Method: http.MethodPost,
+			Path:   "/convai/knowledge-base/kb-123/rag-index",
+			Body:   `{"id":"rag-123","model":"e5_mistral_7b_instruct","status":"processing","progress_percentage":50,"document_model_index_usage":{"used_bytes":1234}}`,
+		},
+		{
+			Method: http.MethodGet,
+			Path:   "/convai/knowledge-base/kb-123/rag-index",
+			Body:   `{"indexes":[{"id":"rag-123","model":"e5_mistral_7b_instruct","status":"processing","progress_percentage":50,"document_model_index_usage":{"used_bytes":1234}}]}`,
+		},
+		{
+			Method: http.MethodDelete,
+			Path:   "/convai/knowledge-base/kb-123/rag-index/rag-123",
+		},
+		{
+			Method: http.MethodPost,
 			Path:   "/convai/tools",
 			Body:   `{"tool_id":"tool-123","name":"Tool","description":"Desc"}`,
 		},
@@ -56,6 +70,31 @@ func TestAccConvAIResourcesAndDataSources(t *testing.T) {
 			Method: http.MethodPost,
 			Path:   "/convai/mcp-servers",
 			Body:   `{"mcp_server_id":"mcp-123","name":"MCP","url":"https://mcp.example.com"}`,
+		},
+		{
+			Method: http.MethodPost,
+			Path:   "/convai/mcp-servers/mcp-123/tool-approvals",
+		},
+		{
+			Method: http.MethodDelete,
+			Path:   "/convai/mcp-servers/mcp-123/tool-approvals/lookup",
+		},
+		{
+			Method: http.MethodPost,
+			Path:   "/convai/mcp-servers/mcp-123/tool-configs",
+		},
+		{
+			Method: http.MethodGet,
+			Path:   "/convai/mcp-servers/mcp-123/tool-configs/lookup",
+			Body:   `{"tool_name":"lookup","force_pre_tool_speech":true,"disable_interruptions":false,"tool_call_sound":"beep","tool_call_sound_behavior":"auto","execution_mode":"immediate","assignments":[{"source":"response","dynamic_variable":"user_id","value_path":"data.id"}]}`,
+		},
+		{
+			Method: http.MethodPatch,
+			Path:   "/convai/mcp-servers/mcp-123/tool-configs/lookup",
+		},
+		{
+			Method: http.MethodDelete,
+			Path:   "/convai/mcp-servers/mcp-123/tool-configs/lookup",
 		},
 		{
 			Method: http.MethodPatch,
@@ -209,6 +248,11 @@ resource "elevenlabs_convai_knowledge_base" "kb" {
   content = "Hello"
 }
 
+resource "elevenlabs_convai_knowledge_base_rag_index" "rag" {
+  documentation_id = elevenlabs_convai_knowledge_base.kb.id
+  model            = "e5_mistral_7b_instruct"
+}
+
 resource "elevenlabs_convai_tool" "tool" {
   name        = "Tool"
   description = "Desc"
@@ -217,6 +261,32 @@ resource "elevenlabs_convai_tool" "tool" {
 resource "elevenlabs_convai_mcp_server" "mcp" {
   name = "MCP"
   url  = "https://mcp.example.com"
+}
+
+resource "elevenlabs_convai_mcp_tool_approval" "approval" {
+  mcp_server_id   = elevenlabs_convai_mcp_server.mcp.id
+  tool_name       = "lookup"
+  tool_description = "Lookup tool"
+  input_schema    = jsonencode({ type = "object" })
+  approval_policy = "auto_approved"
+}
+
+resource "elevenlabs_convai_mcp_tool_config" "config" {
+  mcp_server_id = elevenlabs_convai_mcp_server.mcp.id
+  tool_name     = "lookup"
+
+  force_pre_tool_speech    = true
+  disable_interruptions    = false
+  tool_call_sound          = "beep"
+  tool_call_sound_behavior = "auto"
+  execution_mode           = "immediate"
+  assignments = [
+    {
+      source           = "response"
+      dynamic_variable = "user_id"
+      value_path       = "data.id"
+    }
+  ]
 }
 
 resource "elevenlabs_convai_phone_number" "phone" {
@@ -296,8 +366,11 @@ data "elevenlabs_convai_llm_usage_calculator" "usage" {
 `, testAccProviderConfig(server.URL)),
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("elevenlabs_convai_knowledge_base.kb", "id", "kb-123"),
+					resource.TestCheckResourceAttr("elevenlabs_convai_knowledge_base_rag_index.rag", "id", "rag-123"),
 					resource.TestCheckResourceAttr("elevenlabs_convai_tool.tool", "id", "tool-123"),
 					resource.TestCheckResourceAttr("elevenlabs_convai_mcp_server.mcp", "id", "mcp-123"),
+					resource.TestCheckResourceAttr("elevenlabs_convai_mcp_tool_approval.approval", "id", "mcp-123:lookup"),
+					resource.TestCheckResourceAttr("elevenlabs_convai_mcp_tool_config.config", "id", "mcp-123:lookup"),
 					resource.TestCheckResourceAttr("elevenlabs_convai_phone_number.phone", "id", "phone-123"),
 					resource.TestCheckResourceAttr("elevenlabs_convai_whatsapp_account.wa", "phone_number", "+456"),
 					resource.TestCheckResourceAttr("elevenlabs_convai_conversation.conv", "name", "Conversation"),
