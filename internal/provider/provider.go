@@ -112,6 +112,9 @@ func (p *ElevenLabsProvider) Resources(ctx context.Context) []func() resource.Re
 		NewConvAIAgentDuplicatorResource,
 		NewSharedVoiceResource,
 		NewConvAIConversationResource,
+		NewConvAIMCPToolApprovalResource,
+		NewConvAIMCPToolConfigResource,
+		NewConvAIKnowledgeBaseRAGIndexResource,
 		NewPVCVoiceResource,
 		NewPVCVoiceSampleResource,
 	}
